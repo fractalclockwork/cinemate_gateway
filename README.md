@@ -1,4 +1,4 @@
-# ir-remote-bose
+# cinemate-gateway
 
 Evidence-gated **Raspberry Pi Pico** gateway: receive the **Bose CineMate** universal remote in **AUX** mode and inject ordinary **USB HID** keyboard/media keys into **Chrome on Linux**.
 
@@ -83,3 +83,4 @@ Chrome notes: [`docs/chrome-troubleshooting.md`](docs/chrome-troubleshooting.md)
 ## Phase 2 (deferred)
 
 Later: a small web app to control the Pico for (a) IR TX of CineMate on/off/vol and (b) the same browser HID controls. Requires capture library, TX under `max_ir_tx_*` ceilings, and new human assent before aiming IR at the Interface module. See [`docs/SPEC.md`](docs/SPEC.md) §5.
+# cinemate_gateway
