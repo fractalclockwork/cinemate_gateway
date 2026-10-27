@@ -1,11 +1,12 @@
 # IR / HID notes
 
-Working method: [`operator-loop.md`](operator-loop.md).
+The working method is [`operator-loop.md`](operator-loop.md).
 
 ## Two checks
 
-1. **Host** — Synthetic pulse trains, decode, keymap, HID report packing. `make check` and `make sim`. No USB and no operator flags.
-2. **Bench** — The operator verifies the bench (`OPERATOR_VERIFY=1`) before a physical command. `present` records USB identity once. Capture and loopback stamps are physical IR evidence. `environment/` is the Dev-Host toolchain. Failures print the next operator command.
+The host check covers synthetic pulse trains, decode, the keymap, and HID report packing through `make check` and `make sim`. It needs no USB device and reads no operator flags.
+
+The bench check begins when the operator verifies the bench (`OPERATOR_VERIFY=1`) before any physical command. `present` records USB identity once, capture and loopback stamps are the physical IR evidence, and `environment/` provides the Dev-Host toolchain. When a bench command fails it prints the next command for the operator to run.
 
 ## Commands
 
@@ -19,14 +20,8 @@ Working method: [`operator-loop.md`](operator-loop.md).
 
 ## Loopback ceilings
 
-Optical loopback runs only when:
-
-- `OPERATOR_VERIFY=1`
-- `present` is `pass` in `reports/pico/stage.json`
-- `OPERATOR_IR_PATH=1`
-- The pulse train respects `max_ir_tx_ms` / `max_ir_tx_duty` in [`hardware/boards/pico.yaml`](../../hardware/boards/pico.yaml)
+Optical loopback runs only when `OPERATOR_VERIFY=1` is set, `present` is `pass` in `reports/pico/stage.json`, `OPERATOR_IR_PATH=1` is set, and the pulse train respects `max_ir_tx_ms` and `max_ir_tx_duty` in [`hardware/boards/pico.yaml`](../../hardware/boards/pico.yaml).
 
 ## Phase 1 and phase 2
 
-- Phase 1: receive the Bose remote and send HID to Chrome. The LED is loopback only.
-- Phase 2 (deferred): a small web app and IR transmit toward the CineMate Interface. That needs a new operator flag before any radiated IR.
+Phase 1 receives the Bose remote and sends HID to Chrome; the LED is loopback only. Phase 2, which is deferred, adds a small web app and IR transmit toward the CineMate Interface, and needs a new operator flag before any radiated IR.

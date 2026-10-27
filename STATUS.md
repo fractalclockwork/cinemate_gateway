@@ -9,6 +9,7 @@ Spec: [`docs/SPEC.md`](docs/SPEC.md). Doc index: [`docs/README.md`](docs/README.
 - Staged AUX personality: Sony DVR **`20636`** (`sony-dvr-20636`); TV source **`10178`** separate.
 - Host keymap profile: **amazon** ([`software/keymap.yaml`](software/keymap.yaml)) — Space/F/Esc/seek arrows; d-pad = mouse; enter = click; shared page/channel IR → Tab/Shift+Tab ([`docs/remote/amazon-chrome-shortcuts.md`](docs/remote/amazon-chrome-shortcuts.md)).
 - Confirmation flags: `OPERATOR_VERIFY` / `OPERATOR_FLASH` / `OPERATOR_IR_PATH` — the operator sets them; agents never do.
+- Design-process article: [`docs/design-process.md`](docs/design-process.md). Bench procedure for agents: [`.cursor/skills/bench-session/SKILL.md`](.cursor/skills/bench-session/SKILL.md).
 - Evidence root: `reports/pico/` (gitignored). Host HID check is `make sim`. Physical IR is capture and loopback.
 - On-device firmware: **GP14/GP15**, Sony SIRC decode, `MODE=map`, `KEYMAP` from `make firmware-keymap` → [`hardware/firmware/pico/keymap_gen.py`](hardware/firmware/pico/keymap_gen.py). Deploy recursively ships vendored [`lib/adafruit_hid`](hardware/firmware/pico/lib/adafruit_hid/) (fail if missing).
 
@@ -19,7 +20,7 @@ Spec: [`docs/SPEC.md`](docs/SPEC.md). Doc index: [`docs/README.md`](docs/README.
 
 ## Open
 
-- Operator confirmed play/pause feels right (one Space per press, 0.12 s release). D-pad feel is acceptable (5 px, ramp to 24 by 1.2 s). Record → F; Quick Skip → Alt+Tab; Instant Replay → Shift+Alt+Tab. Scan (ffw/frw) repeats Left/Right about every 0.35 s while held. A missed toggle after Quick Skip is focus: Alt+Tab leaves the player, and Space then scrolls the page.
+- Operator confirmed play/pause feels right (one Space per press, 0.12 s release). D-pad feel is acceptable (5 px, ramp to 24 by 1.2 s). Enter holds the left button 30 ms so the click is not lost. Record → F; Quick Skip → Alt+Tab; Instant Replay → Shift+Alt+Tab. Scan (ffw/frw) repeats Left/Right about every 0.35 s while held. A missed toggle after Quick Skip is focus: Alt+Tab leaves the player, and Space then scrolls the page.
 - Blink digit/success “start flash” notes still contradictory until worksheet rows exist.
 - First git commit / remote / push — the operator publishes.
 

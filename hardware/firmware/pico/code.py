@@ -235,7 +235,11 @@ def emit_hid(kbd, cc, mouse, kind, name):
         cc.send(CONSUMER_CODES[name])
     elif kind == "mouse":
         if name == "MOUSE_LEFT_CLICK":
-            mouse.click(Mouse.LEFT_BUTTON)
+            # Back-to-back press/release collapses into one USB report, so the
+            # host sees the button stick down until the next pointer move.
+            mouse.press(Mouse.LEFT_BUTTON)
+            time.sleep(0.03)
+            mouse.release(Mouse.LEFT_BUTTON)
 
 
 def main():
@@ -243,6 +247,7 @@ def main():
     kbd = Keyboard(usb_hid.devices)
     cc = ConsumerControl(usb_hid.devices)
     mouse = Mouse(usb_hid.devices)
+    mouse.release_all()
     # Last key or click still held. Cleared after KEY_RELEASE_S with no IR.
     held_frame = None
     seek_at = None
