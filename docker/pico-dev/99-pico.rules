@@ -1,0 +1,3 @@
+# Raspberry Pi Pico / RP2040 in BOOTSEL (picotool) and USB CDC / CircuitPython.
+SUBSYSTEM=="usb", ATTRS{idVendor}=="2e8a", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="239a", MODE="0666"

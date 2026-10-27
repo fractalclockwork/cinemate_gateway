@@ -1,0 +1,73 @@
+source: AUX
+brand: Sony
+list: DVR
+library_code: '20636'
+personality: sony-dvr-20636
+code_check:
+- 2
+- 0
+- 6
+- 3
+- 6
+blink_semantics:
+  program_accept_observed: 'Short flash, then two flashes after the fifth digit (operator:
+    programming succeeded; AUX+10178 controlled TV On-Off)'
+  program_reject_manual: 'Owner''s guide ~p. 15: five source buttons flash rapidly
+    three times for invalid key / unavailable code'
+  source_led_tx: "Selected source LED (TV/VCR/AUX/\u2026) blinks when a press transmits\
+    \ IR; no blink means that button is silent for this personality"
+  note: Treat the observed short+double pattern as accept on this unit. Use source-LED
+    blink to know which keys emit.
+working:
+- source: TV
+  library_code: '10178'
+  code_check:
+  - 1
+  - 0
+  - 1
+  - 7
+  - 8
+  note: TV source works with 10178. Also collected in unique capture pass.
+- source: AUX
+  library_code: '20636'
+  note: Operator recalls AUX holds Sony DVR 20636 (code-check 2,0,6,3,6).
+unique_capture:
+  mode: listen-only decode; no prompts; map buttons after collecting unique frame
+    keys
+  personalities:
+  - sony-dvr-20636
+  - tv-10178
+  evidence: reports/pico/20261027T043341Z/captures
+  operator_protocol_split:
+    sony-sirc20: AUX Sony DVR 20636 device commands
+    nec-like: TV 10178 commands
+    unclassified: Bose/CineMate speaker-always (e.g. volume)
+prior_attempts:
+- library_code: '10178'
+  source: AUX
+  list: TV
+  personality: tv-10178
+  note: AUX+10178 controlled TV On-Off; restaged unique capture prefers AUX 20636
+    then TV source 10178.
+- library_code: '20000'
+  source: AUX
+  list: VCR
+  personality: vcr-20000
+  note: Abandoned for mapping. External IR decoder only saw up/down.
+- library_code: '21972'
+  source: AUX
+  list: DVR
+  note: Same blink pattern; was misclassified as reject.
+- library_code: '20034'
+  source: AUX
+  list: VCR
+  note: Same blink pattern; was misclassified as reject.
+procedure:
+  program: Owner's guide, Setting up the remote to control other sources, ~pp. 14-15
+  code_check: Owner's guide, Verifying a device code, ~p. 21
+on_off:
+  confirmed: true
+  evidence: reports/pico/20261027T043341Z/captures
+  frame_key: sony-sirc20:1a:15:9a
+  signature: null
+  map: reports/pico/20261027T043341Z/captures/aux_dvr_20636_map.yaml

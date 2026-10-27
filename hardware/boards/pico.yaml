@@ -1,0 +1,45 @@
+id: pico
+title: Raspberry Pi Pico
+vendor: Raspberry Pi
+part: Pico (RP2040)
+usb_vendor: "2e8a"
+# CircuitPython typically enumerates as Adafruit VID for CIRCUITPY + CDC;
+# Raspberry Pi bootloader / picoprobe may differ. present stage accepts either.
+usb_product_boot: "0003"
+usb_product_circuitpython: "0005"
+expected_serial: null
+firmware_target: circuitpython
+firmware_path: hardware/firmware/pico
+# Operator verifies the bench before every HWIL test. The Pico is the DUT.
+# DUT presence is the present stage result, not an operator flag.
+operator_verify: HUMAN_VERIFY
+operator_image: HUMAN_IR_PATH
+operator_firmware: HUMAN_FLASH
+# IR TX ceilings — optical loopback / future TX only; fail-closed.
+ir_tx_ms: 50
+max_ir_tx_ms: 200
+ir_tx_duty: 0.33
+max_ir_tx_duty: 0.5
+# HID / decode policy
+debounce_ms: 80
+max_repeat_hz: 8
+ignore_speaker_always: true
+# GPIO placeholders — fill after IR module/LED datasheets are chosen.
+pins:
+  ir_rx: 14
+  ir_tx: 15
+  status_led: 25
+image_paths:
+  - id: optical-loopback
+    primary: true
+    note: >
+      Short IR LED → IR RX optical path on the bench, or scripted Bose remote
+      AUX button presses into capture mode. Set HUMAN_IR_PATH=1. Phase 1 must
+      not aim TX at the CineMate Interface module.
+control_buses:
+  - id: usb
+    role: program
+    tool: circuitpython-uf2
+  - id: usb-hid
+    role: runtime
+    tool: usb_hid

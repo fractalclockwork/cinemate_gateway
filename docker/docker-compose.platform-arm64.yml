@@ -1,0 +1,5 @@
+# Merge: docker compose -f docker-compose.yml -f docker-compose.platform-arm64.yml build
+name: ir-remote-bose
+services:
+  pico-dev:
+    platform: linux/arm64

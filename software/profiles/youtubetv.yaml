@@ -1,0 +1,28 @@
+# YouTube TV computer help documents search and Enter, not playback keys.
+# The youtube.com shortcut table is not applied here.
+id: youtubetv
+surface: browse
+source: https://support.google.com/youtubetv/answer/7271628
+remote: sony-dvr-20636
+controls:
+  up: {hid: null, ui: unbound}
+  down: {hid: null, ui: unbound}
+  left: {hid: null, ui: unbound}
+  right: {hid: null, ui: unbound}
+  enter: {hid: ENTER, ui: select}
+  back: {hid: null, ui: unbound}
+  play: {hid: null, ui: unbound}
+  pause: {hid: null, ui: unbound}
+  stop: {hid: null, ui: unbound}
+  ffw: {hid: null, ui: unbound}
+  frw: {hid: null, ui: unbound}
+  "0": {hid: null, ui: unbound}
+  "1": {hid: null, ui: unbound}
+  "2": {hid: null, ui: unbound}
+  "3": {hid: null, ui: unbound}
+  "4": {hid: null, ui: unbound}
+  "5": {hid: null, ui: unbound}
+  "6": {hid: null, ui: unbound}
+  "7": {hid: null, ui: unbound}
+  "8": {hid: null, ui: unbound}
+  "9": {hid: null, ui: unbound}

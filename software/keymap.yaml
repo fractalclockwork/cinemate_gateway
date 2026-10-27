@@ -1,0 +1,20 @@
+# Sony DVR library code 20636 staged on AUX.
+# Frame keys are measured; agreeing a/b samples accept each button.
+# Evidence: reports/pico/20261027T043341Z/captures/validated.json
+version: 1
+mode_gate: aux
+personality: sony-dvr-20636
+profile: kanopy
+ignore_speaker_always: true
+ignore: []
+map:
+  sony-sirc20:1a:5f:9a: UP
+  sony-sirc20:1a:60:9a: DOWN
+  sony-sirc20:1a:62:9a: LEFT
+  sony-sirc20:1a:61:9a: RIGHT
+  sony-sirc20:1a:5e:9a: ENTER
+  sony-sirc20:1a:63:9a: ESCAPE
+  sony-sirc20:1a:19:9a: SPACE
+  sony-sirc20:1a:1a:9a: SPACE
+  sony-sirc20:1a:1c:9a: RIGHT
+  sony-sirc20:1a:1b:9a: LEFT

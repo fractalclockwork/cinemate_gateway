@@ -1,0 +1,33 @@
+# EXAMPLE keymap — change freely after AUX captures.
+# IR keys use frame_key form: nec-like:<address hex>:<command hex>
+# These synthetic address/command pairs are SIL fixtures only, NOT Bose codes.
+#
+# Remote (AUX) intent → HID (Chrome-oriented):
+#   arrows → UP/DOWN/LEFT/RIGHT
+#   OK     → ENTER
+#   Exit   → ESCAPE
+#   Play   → SPACE (and/or PLAY_PAUSE)
+#   Skip   → NEXT / PREVIOUS
+#   Vol    → VOLUME_UP / VOLUME_DOWN
+#   Mute   → MUTE
+#
+# Prefer plain keys over Ctrl/Alt chords that steal Chrome/OS focus.
+
+version: 1
+mode_gate: aux  # documented intent; firmware enforces after captures
+ignore_speaker_always: true
+ignore: []  # e.g. nec-like:00:0c for speaker-always volume once known
+map:
+  nec-like:01:01: UP
+  nec-like:01:02: DOWN
+  nec-like:01:03: LEFT
+  nec-like:01:04: RIGHT
+  nec-like:01:05: ENTER
+  nec-like:01:06: ESCAPE
+  nec-like:01:07: SPACE
+  nec-like:01:08: PLAY_PAUSE
+  nec-like:01:09: NEXT
+  nec-like:01:0a: PREVIOUS
+  nec-like:01:0b: VOLUME_UP
+  nec-like:01:0c: VOLUME_DOWN
+  nec-like:01:0d: MUTE

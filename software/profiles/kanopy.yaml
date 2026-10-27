@@ -1,0 +1,27 @@
+# Kanopy keyboard controls with no player button focused.
+id: kanopy
+surface: player
+source: https://help.kanopy.com/en-us/4140.htm
+remote: sony-dvr-20636
+controls:
+  up: {hid: UP, ui: arrow}
+  down: {hid: DOWN, ui: arrow}
+  left: {hid: LEFT, ui: seek_back}
+  right: {hid: RIGHT, ui: seek_forward}
+  enter: {hid: ENTER, ui: activate}
+  back: {hid: ESCAPE, ui: exit_fullscreen}
+  play: {hid: SPACE, ui: play_pause}
+  pause: {hid: SPACE, ui: play_pause}
+  stop: {hid: null, ui: unbound}
+  ffw: {hid: RIGHT, ui: seek_forward}
+  frw: {hid: LEFT, ui: seek_back}
+  "0": {hid: null, ui: unbound}
+  "1": {hid: null, ui: unbound}
+  "2": {hid: null, ui: unbound}
+  "3": {hid: null, ui: unbound}
+  "4": {hid: null, ui: unbound}
+  "5": {hid: null, ui: unbound}
+  "6": {hid: null, ui: unbound}
+  "7": {hid: null, ui: unbound}
+  "8": {hid: null, ui: unbound}
+  "9": {hid: null, ui: unbound}

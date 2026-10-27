@@ -1,0 +1,9 @@
+# Pin versions for reproducible images (adapted from crt-drive docker/TOOLCHAIN_VERSIONS).
+
+BASE_IMAGE_DEBIAN=debian:bookworm-slim
+
+# Raspberry Pi Pico SDK (git tag) — available for picotool / future SDK firmware
+PICO_SDK_VERSION=2.1.1
+
+# picotool tag — keep in lockstep with the SDK (USB load + ELF-to-UF2)
+PICOTOOL_VERSION=2.1.1

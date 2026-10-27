@@ -1,0 +1,28 @@
+# Prime Video player shortcuts. Arrows seek or change player volume.
+# Enter and digits are not in the published player list.
+id: amazon
+surface: player
+source: https://www.amazon.com/gp/help/customer/display.html?nodeId=GH5GWCRVQCKEEFM8
+remote: sony-dvr-20636
+controls:
+  up: {hid: UP, ui: volume_up}
+  down: {hid: DOWN, ui: volume_down}
+  left: {hid: LEFT, ui: seek_back}
+  right: {hid: RIGHT, ui: seek_forward}
+  enter: {hid: null, ui: unbound}
+  back: {hid: ESCAPE, ui: exit_playback}
+  play: {hid: SPACE, ui: play_pause}
+  pause: {hid: SPACE, ui: play_pause}
+  stop: {hid: ESCAPE, ui: exit_playback}
+  ffw: {hid: RIGHT, ui: seek_forward}
+  frw: {hid: LEFT, ui: seek_back}
+  "0": {hid: null, ui: unbound}
+  "1": {hid: null, ui: unbound}
+  "2": {hid: null, ui: unbound}
+  "3": {hid: null, ui: unbound}
+  "4": {hid: null, ui: unbound}
+  "5": {hid: null, ui: unbound}
+  "6": {hid: null, ui: unbound}
+  "7": {hid: null, ui: unbound}
+  "8": {hid: null, ui: unbound}
+  "9": {hid: null, ui: unbound}

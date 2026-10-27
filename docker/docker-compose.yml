@@ -1,0 +1,25 @@
+name: ir-remote-bose
+
+# Dev-Host: bind-mount this repo and run SIL / tooling in pico-dev.
+# USB flash/discover uses docker-compose.usb.yml so ordinary runs stay unprivileged.
+
+services:
+  pico-dev:
+    build:
+      context: ./pico-dev
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ${BASE_IMAGE_DEBIAN:-debian:bookworm-slim}
+        PICO_SDK_VERSION: ${PICO_SDK_VERSION:-2.1.1}
+        PICOTOOL_VERSION: ${PICOTOOL_VERSION:-2.1.1}
+    image: ir-remote-bose/pico-dev:local
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    environment:
+      PICO_SDK_PATH: /opt/pico-sdk
+      PYTHONPATH: /workspace
+    user: "${DEV_UID:-0}:${DEV_GID:-0}"
+    command: ["sleep", "infinity"]
+    stdin_open: true
+    tty: true
