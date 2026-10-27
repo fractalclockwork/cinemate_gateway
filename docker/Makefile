@@ -56,7 +56,7 @@ help:
 	@echo "  make check              — pytest SIL inside the container"
 	@echo "  make pico-discover      — host lsusb + optional picotool (BOOTSEL)"
 	@echo "  make picotool-info      — picotool info via USB compose"
-	@echo "  make load-circuitpython — picotool load UF2 (needs HUMAN_VERIFY + HUMAN_FLASH + present pass)"
+	@echo "  make load-circuitpython — picotool load UF2 (needs OPERATOR_VERIFY + OPERATOR_FLASH + present pass)"
 	@echo "  CIRCUITPYTHON_UF2=$(CIRCUITPYTHON_UF2)"
 	@echo "See README.md and ../environment/README.md"
 
@@ -109,10 +109,10 @@ picotool-info:
 	$(COMPOSE_USB) run --rm --no-deps pico-dev bash -lc 'picotool info -a || picotool info'
 
 load-circuitpython:
-	@test "$${HUMAN_VERIFY:-}" = "1" || { echo "set HUMAN_VERIFY=1 (operator verifies the bench before this test begins)" >&2; exit 1; }
-	@test "$${HUMAN_FLASH:-}" = "1" || { echo "set HUMAN_FLASH=1 (operator allows the firmware write)" >&2; exit 1; }
+	@test "$${OPERATOR_VERIFY:-}" = "1" || { echo "set OPERATOR_VERIFY=1 (operator verifies the bench before this test begins)" >&2; exit 1; }
+	@test "$${OPERATOR_FLASH:-}" = "1" || { echo "set OPERATOR_FLASH=1 (operator allows the firmware write)" >&2; exit 1; }
 	@PYTHONPATH=$(REPO_ROOT) $(LOAD_PYTHON) -c "from harness.boards import stage_passed; import sys; sys.exit(0 if stage_passed('pico', 'present') else 1)" \
-		|| { echo "pico present stage has not passed. Next: HUMAN_VERIFY=1 make stage BOARD=pico STAGE=present" >&2; exit 1; }
+		|| { echo "pico present stage has not passed. Next: OPERATOR_VERIFY=1 make stage BOARD=pico STAGE=present" >&2; exit 1; }
 	@test -f "$(REPO_ROOT)/archive/cache/circuitpython/raspberry_pi_pico.uf2" || { \
 		echo "missing archive/cache/circuitpython/raspberry_pi_pico.uf2 — download CircuitPython UF2 for raspberry_pi_pico first" >&2; \
 		exit 1; }
@@ -120,4 +120,4 @@ load-circuitpython:
 		test -f $(CIRCUITPYTHON_UF2) || { echo "missing $(CIRCUITPYTHON_UF2)" >&2; exit 1; }; \
 		echo "Loading CircuitPython UF2 via environment/flash.sh (reboot -u -f, then load -x)..."; \
 		bash /workspace/environment/flash.sh $(CIRCUITPYTHON_UF2); \
-		echo "After reboot, mount CIRCUITPY and run: HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware"'
+		echo "After reboot, mount CIRCUITPY and run: OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware"'

@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from harness import boards
-from harness.boards import read_stages, write_stage
-from hardware import probe
+from hardware import probe, records
 from hardware.firmware import deploy
+from hardware.records import read_stages, write_stage
 from hardware.stages import stage_workflow
-from human import assent
+from operator import assent
 
 
 def _isolate_reports(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr(boards, "reports_root", lambda: tmp_path / "reports")
+    monkeypatch.setattr(records, "reports_root", lambda: tmp_path / "reports")
     monkeypatch.setenv(assent.VERIFY_ENV, "1")
 
 
@@ -57,13 +56,20 @@ def test_deploy_refuses_without_present(tmp_path, monkeypatch):
         deploy({"id": "pico"})
 
 
-def test_warn_if_adafruit_hid_missing(tmp_path, capsys):
-    from hardware.firmware import warn_if_adafruit_hid_missing
+def test_require_adafruit_hid_fails_then_passes(tmp_path):
+    from hardware.firmware import adafruit_hid_present, require_adafruit_hid
 
-    warn_if_adafruit_hid_missing(tmp_path)
-    assert "adafruit_hid not found" in capsys.readouterr().out
+    assert adafruit_hid_present(tmp_path) is False
+    with pytest.raises(SystemExit, match="adafruit_hid missing"):
+        require_adafruit_hid(tmp_path)
     hid = tmp_path / "lib" / "adafruit_hid"
     hid.mkdir(parents=True)
     (hid / "__init__.py").write_text("")
-    warn_if_adafruit_hid_missing(tmp_path)
-    assert capsys.readouterr().out == ""
+    require_adafruit_hid(tmp_path)
+    assert adafruit_hid_present(tmp_path) is True
+
+
+def test_firmware_source_vendors_adafruit_hid():
+    from hardware.firmware import FIRMWARE_SRC, adafruit_hid_present
+
+    assert adafruit_hid_present(FIRMWARE_SRC)

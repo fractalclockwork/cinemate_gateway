@@ -9,4 +9,4 @@ Synthetic decode and HID fixtures only.
 
 ## Forbidden
 
-- Opening USB devices, flashing, or importing `human` / `hardware` actuator modules.
+- Opening USB devices, flashing, or importing `operator` / `hardware` actuator modules.

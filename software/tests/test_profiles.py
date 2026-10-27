@@ -39,10 +39,20 @@ def test_app_encodings_differ_where_the_pages_differ():
     youtube = load_profile("youtubetv")
 
     assert control_hid(amazon, "ffw") == "RIGHT"
-    assert control_hid(amazon, "up") == "UP"
-    assert resolve_action("UP").kind == "keyboard"
-    assert control_hid(amazon, "enter") is None
+    assert control_hid(amazon, "up") == "MOUSE_UP"
+    assert resolve_action("MOUSE_UP").kind == "mouse"
+    assert control_hid(amazon, "enter") == "MOUSE_LEFT_CLICK"
     assert control_hid(amazon, "play") == "SPACE"
+    assert control_hid(amazon, "quick_skip") == "ALT_TAB"
+    assert control_hid(amazon, "instant_replay") == "SHIFT_ALT_TAB"
+    assert control_hid(amazon, "record") == "F"
+    assert resolve_action("ALT_TAB").modifier == 0x04
+    assert resolve_action("SHIFT_ALT_TAB").modifier == 0x06
+    assert control_hid(amazon, "channel_up") == "TAB"
+    assert control_hid(amazon, "channel_down") == "SHIFT_TAB"
+    assert control_hid(amazon, "page_up") is None  # shared IR with channel_up
+    assert resolve_action("SHIFT_TAB").modifier == 0x02
+    assert resolve_action("F").usage_id == 0x09
 
     assert control_hid(paramount, "ffw") == "L"
     assert control_hid(paramount, "frw") == "J"

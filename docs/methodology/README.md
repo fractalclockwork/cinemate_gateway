@@ -1,14 +1,10 @@
 # Methodology
 
-This project instantiates the same **evidence-gated roles** pattern used in rad-lab / Man-Model-Machine, adapted for a Pico IR→USB-HID gateway (no RF TX policy).
-
-**Product requirements** (what to build): [`../SPEC.md`](../SPEC.md). This folder is **process** (how evidence and roles gate work), not the product brief.
+How this repo treats a physical device and the operator at the bench. Product requirements are in [`../SPEC.md`](../SPEC.md).
 
 | Doc | What it is |
 | --- | --- |
-| [Domain notes](domain.md) | SIL→HWIL ladder for IR/HID |
-| [Checklist mapping](checklist-mapping.md) | How the general checklist maps onto this repo |
+| [Operator loop](operator-loop.md) | What the host may prove, and what only the operator can confirm |
+| [Domain notes](domain.md) | Host checks versus bench commands for IR and HID |
 
-**Reading order:** [`SPEC.md`](../SPEC.md) → domain notes → checklist mapping → root [`AGENTS.md`](../../AGENTS.md).
-
-Upstream theory (rad-lab): `docs/methodology/evidence-gated-roles.md` and `checklist.md` in the rad-lab tree.
+**Reading order:** [`SPEC.md`](../SPEC.md) → [operator loop](operator-loop.md) → [domain notes](domain.md) → root [`AGENTS.md`](../../AGENTS.md).

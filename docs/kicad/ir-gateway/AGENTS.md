@@ -1,6 +1,6 @@
 # KiCad protoboard (schematic → wire-wrap PCB)
 
-Process for the IR gateway hand-wired / wire-wrap board under this tree. Agents stand in this role only while editing `docs/kicad/ir-gateway/` (and linked board docs). Do **not** invent human verification; stop at each gate until the operator confirms.
+Process for the IR gateway hand-wired / wire-wrap board under this tree. Agents stand in this role only while editing `docs/kicad/ir-gateway/` (and linked board docs). Do **not** invent operator verification; stop at each gate until the operator confirms.
 
 **Design facts:** [`hardware-design.md`](hardware-design.md).  
 **Tools:** [`_generate.py`](_generate.py) (schematic + initial PCB scaffold), [`_snap_route.py`](_snap_route.py) (2.54 mm snap + Manhattan jumpers).  
@@ -10,13 +10,13 @@ Process for the IR gateway hand-wired / wire-wrap board under this tree. Agents 
 
 | Allowed | Forbidden |
 | --- | --- |
-| Generate/update schematic and PCB per the gates below | Skipping a human verification gate |
-| Auto-validate nets (ERC, netlist membership, DRC connectivity) | Treating auto-validate as human approval |
-| Snap to 2.54 mm and Manhattan-route after placement is verified | Re-placing parts after human placement OK without re-verification |
+| Generate/update schematic and PCB per the gates below | Skipping a operator verification gate |
+| Auto-validate nets (ERC, netlist membership, DRC connectivity) | Treating auto-validate as operator approval |
+| Snap to 2.54 mm and Manhattan-route after placement is verified | Re-placing parts after operator placement OK without re-verification |
 | Add jumper layers when paths cross | Same-layer crossings; diagonal tracks |
-| Point the operator at files / reports | Setting `HUMAN_*` or typing YES for the operator |
+| Point the operator at files / reports | Setting `OPERATOR_*` or typing YES for the operator |
 
-Evidence / notes may land under `reports/` when useful; they do not replace the human gates.
+Evidence / notes may land under `reports/` when useful; they do not replace the operator gates.
 
 ---
 
@@ -27,11 +27,11 @@ Evidence / notes may land under `reports/` when useful; they do not replace the 
         ↓
 [2] Auto-validate nets / connects     ← agent
         ↓
-[3] Human verify schematic            ← STOP until operator OK
+[3] Operator verifies schematic            ← STOP until operator OK
         ↓
 [4] PCB component placement           ← agent draft / operator edit
         ↓
-[5] Human verify rotation + position  ← STOP until operator OK
+[5] Operator verifies rotation + position  ← STOP until operator OK
         ↓
 [6] Snap to 2.54 mm grid              ← agent (_snap_route.py)
         ↓
@@ -53,7 +53,7 @@ Evidence / notes may land under `reports/` when useful; they do not replace the 
 
 ## 2. Auto-validate nets and connects (agent)
 
-Run before asking for human schematic review:
+Run before asking for operator schematic review:
 
 ```bash
 kicad-cli sch erc --format report --severity-all \
@@ -74,9 +74,9 @@ Check membership against the design net list:
 
 CHQ1838 pin order is **1=OUT, 2=GND, 3=VCC** (do not reuse TSOP17xx 1=GND/2=Vs/3=OUT).
 
-Fix dangling wires, power/GND shorts through pin columns, and pin-not-connected errors. **ERC clean is necessary but not sufficient** — still require human verification.
+Fix dangling wires, power/GND shorts through pin columns, and pin-not-connected errors. **ERC clean is necessary but not sufficient** — still require operator verification.
 
-## 3. Human verify schematic (gate)
+## 3. Operator verifies schematic (gate)
 
 Stop. Ask the operator to review the sheet in Eeschema (connectivity, polarity, pin map, values).
 
@@ -90,7 +90,7 @@ Stop. Ask the operator to review the sheet in Eeschema (connectivity, polarity, 
 3. Do not snap or autoroute yet — rough placement for access and lead dress only.
 4. `pcbnew` LoadBoard may segfault on this board; prefer sexpr / `_snap_route.py` over Python `pcbnew` automation.
 
-## 5. Human verify rotation and position (gate)
+## 5. Operator verifies rotation and position (gate)
 
 Stop. Ask the operator to confirm:
 
@@ -108,7 +108,7 @@ python3 docs/kicad/ir-gateway/_snap_route.py
 - Grid origin = Pico `A1` pad 1.
 - Snap footprint `(at x y)` to nearest 2.54 mm; snap rotation to 90° steps.
 - Recompute pad world coords with KiCad’s PCB rotation sign (see `_snap_route.py` `rot_xy`).
-- Dense courtyards on the TX cluster are expected; do not “fix” packing by spreading parts after human placement OK unless the operator asks.
+- Dense courtyards on the TX cluster are expected; do not “fix” packing by spreading parts after operator placement OK unless the operator asks.
 
 ## 7. Wire power and ground (own layers, Manhattan)
 
@@ -152,7 +152,7 @@ If the operator moves parts again after a route, return to gate **5**, then re-r
 # Schematic generate (also refreshes scaffold PCB — prefer _snap_route after placement)
 python3 docs/kicad/ir-gateway/_generate.py
 
-# After human schematic OK + human placement OK:
+# After operator schematic OK + operator placement OK:
 python3 docs/kicad/ir-gateway/_snap_route.py
 ```
 
@@ -160,7 +160,7 @@ python3 docs/kicad/ir-gateway/_snap_route.py
 
 | File | Role |
 | --- | --- |
-| `ir-gateway.kicad_sch` | Schematic (human-verified) |
+| `ir-gateway.kicad_sch` | Schematic (operator-verified) |
 | `ir-gateway.kicad_pcb` | Protoboard (snapped + jumpers) |
 | `ir-gateway.kicad_pro` | Project / DRC severities |
 | `sym-lib-table` | Local `ir-gateway` symbol lib |

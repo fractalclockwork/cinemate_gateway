@@ -1,20 +1,29 @@
 # Sony DVR library code 20636 staged on AUX.
 # Frame keys are measured; agreeing a/b samples accept each button.
 # Evidence: reports/pico/20261027T043341Z/captures/validated.json
+# Active profile: amazon (Prime Video). page/channel rocker shares IR —
+# bound as TAB / SHIFT_TAB (see docs/remote/amazon-chrome-shortcuts.md).
 version: 1
 mode_gate: aux
 personality: sony-dvr-20636
-profile: kanopy
+profile: amazon
 ignore_speaker_always: true
 ignore: []
 map:
-  sony-sirc20:1a:5f:9a: UP
-  sony-sirc20:1a:60:9a: DOWN
-  sony-sirc20:1a:62:9a: LEFT
-  sony-sirc20:1a:61:9a: RIGHT
-  sony-sirc20:1a:5e:9a: ENTER
+  sony-sirc20:1a:5f:9a: MOUSE_UP
+  sony-sirc20:1a:60:9a: MOUSE_DOWN
+  sony-sirc20:1a:62:9a: MOUSE_LEFT
+  sony-sirc20:1a:61:9a: MOUSE_RIGHT
+  sony-sirc20:1a:5e:9a: MOUSE_LEFT_CLICK
   sony-sirc20:1a:63:9a: ESCAPE
   sony-sirc20:1a:19:9a: SPACE
   sony-sirc20:1a:1a:9a: SPACE
   sony-sirc20:1a:1c:9a: RIGHT
   sony-sirc20:1a:1b:9a: LEFT
+  # quick_skip (forward) / instant_replay (backward) / record.
+  sony-sirc20:1a:72:9a: ALT_TAB
+  sony-sirc20:1a:5b:9a: SHIFT_ALT_TAB
+  sony-sirc20:1a:1d:9a: F
+  # page_up/channel_up and page_down/channel_down share these frames.
+  sony-sirc20:1a:10:9a: TAB
+  sony-sirc20:1a:11:9a: SHIFT_TAB

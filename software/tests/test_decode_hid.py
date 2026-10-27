@@ -33,6 +33,25 @@ def test_hid_keyboard_and_consumer():
     assert pack_action(vol) == bytes([0xE9, 0x00])
 
 
+def test_hid_mouse_f_tab_and_shift_tab():
+    from software.hid import MOUSE_STEP
+
+    move = resolve_action("MOUSE_UP")
+    assert move.kind == "mouse"
+    assert pack_action(move) == bytes([0x00, 0, (-MOUSE_STEP) & 0xFF])
+    click = resolve_action("MOUSE_LEFT_CLICK")
+    assert pack_action(click) == bytes([0x01, 0x00, 0x00])
+    f_key = resolve_action("F")
+    assert pack_action(f_key)[2] == 0x09
+    tab = resolve_action("TAB")
+    assert pack_action(tab)[2] == 0x2B
+    shift_tab = resolve_action("SHIFT_TAB")
+    assert shift_tab.modifier == 0x02
+    assert pack_action(shift_tab) == bytes([0x02, 0x00, 0x2B, 0, 0, 0, 0, 0])
+    assert resolve_action("PAGE_UP").usage_id == 0x4B
+    assert resolve_action("PAGE_DOWN").usage_id == 0x4E
+
+
 def test_transport_and_digit_usages():
     assert resolve_action("PAUSE").usage_id == 0xB1
     assert resolve_action("STOP").usage_id == 0xB7

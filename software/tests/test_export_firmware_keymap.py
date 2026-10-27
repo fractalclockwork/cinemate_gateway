@@ -21,13 +21,20 @@ def test_parse_sirc20_frame_key():
     assert (addr, cmd, ext) == (0x1A, 0x5F, 0x9A)
 
 
-def test_keymap_entries_match_active_kanopy_map():
+def test_keymap_entries_match_active_amazon_map():
     data = load_keymap(ACTIVE)
+    assert data.get("profile") == "amazon"
     entries = keymap_entries(data)
     assert len(entries) == len(data["map"])
     by_key = {key: action for key, action in entries}
-    assert by_key[(0x1A, 0x5F, 0x9A)] == ("keyboard", "UP")
+    assert by_key[(0x1A, 0x5F, 0x9A)] == ("mouse", "MOUSE_UP")
+    assert by_key[(0x1A, 0x5E, 0x9A)] == ("mouse", "MOUSE_LEFT_CLICK")
     assert by_key[(0x1A, 0x63, 0x9A)] == ("keyboard", "ESCAPE")
+    assert by_key[(0x1A, 0x72, 0x9A)] == ("keyboard", "ALT_TAB")
+    assert by_key[(0x1A, 0x5B, 0x9A)] == ("keyboard", "SHIFT_ALT_TAB")
+    assert by_key[(0x1A, 0x1D, 0x9A)] == ("keyboard", "F")
+    assert by_key[(0x1A, 0x10, 0x9A)] == ("keyboard", "TAB")
+    assert by_key[(0x1A, 0x11, 0x9A)] == ("keyboard", "SHIFT_TAB")
 
 
 def test_exporter_roundtrip_matches_checked_in_keymap_gen(tmp_path):
@@ -47,7 +54,7 @@ def test_sirc20_decode_matches_frame_key_lookup():
     assert frame is not None
     assert frame_key(frame) == "sony-sirc20:1a:5f:9a"
     entries = dict(keymap_entries())
-    assert entries[(frame.address, frame.command, frame.extended)][1] == "UP"
+    assert entries[(frame.address, frame.command, frame.extended)][1] == "MOUSE_UP"
 
 
 def test_render_is_importable_dict(tmp_path):

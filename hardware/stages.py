@@ -1,4 +1,4 @@
-"""HWIL stages: present → workflow → image."""
+"""HWIL stages: present, then workflow."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from harness.boards import (
+from hardware import probe
+from hardware.records import (
     STAGES,
     load_board,
     read_stages,
@@ -15,9 +16,7 @@ from harness.boards import (
     stage_passed,
     write_stage,
 )
-from hardware import probe
-from human import assent
-from software.fixture import run_image_fixture
+from operator import assent
 
 
 def _utc_now() -> str:
@@ -55,7 +54,7 @@ def stage_present(board: dict) -> None:
             board_id,
             "present",
             "no Pico USB device matching board YAML (or Adafruit CircuitPython VID)",
-            f"HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE=present",
+            f"OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE=present",
         )
     _pass(board_id, "present", {"usb": found})
 
@@ -68,7 +67,7 @@ def stage_workflow(board: dict) -> None:
             board_id,
             "workflow",
             "present stage has not passed",
-            f"HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE=present",
+            f"OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE=present",
         )
     present = read_stages(board_id)["stages"].get("present") or {}
     usb = (present.get("metrics") or {}).get("usb")
@@ -87,49 +86,6 @@ def stage_workflow(board: dict) -> None:
     _pass(board_id, "workflow", {"report": str(report), **identity})
 
 
-def stage_image(board: dict) -> None:
-    board_id = board["id"]
-    assent.require_verify("image stage")
-    for prior in ("present", "workflow"):
-        if not stage_passed(board_id, prior):
-            _fail(
-                board_id,
-                "image",
-                f"{prior} stage has not passed",
-                f"HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE={prior}",
-            )
-    # image stage is SIL HID fixture only (not optical / live IR→HID).
-    tx_ms = assent.clamp_ir_tx_ms(board)
-    duty = assent.clamp_ir_tx_duty(board)
-
-    result = run_image_fixture(board, ir_tx_ms=tx_ms, ir_tx_duty=duty)
-    report = run_report_dir(board_id)
-    (report / "image.json").write_text(json.dumps(result, indent=2) + "\n")
-    captures = report / "captures"
-    captures.mkdir(exist_ok=True)
-    (captures / "README.md").write_text(
-        "Place AUX button capture JSON dumps here during human bring-up.\n"
-        "Physical IR evidence is capture/loopback stamps, not the image SIL fixture.\n"
-    )
-    if not result.get("ok"):
-        _fail(
-            board_id,
-            "image",
-            result.get("reason", "image fixture failed"),
-            f"HUMAN_VERIFY=1 make hwil BOARD={board_id}",
-        )
-    _pass(
-        board_id,
-        "image",
-        {
-            "report": str(report),
-            "ir_tx_ms": tx_ms,
-            "ir_tx_duty": duty,
-            "fixture": result,
-        },
-    )
-
-
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run Pico IR gateway HWIL stage")
     parser.add_argument("--board", default="pico")
@@ -140,8 +96,6 @@ def main(argv: list[str] | None = None) -> None:
         stage_present(board)
     elif args.stage == "workflow":
         stage_workflow(board)
-    elif args.stage == "image":
-        stage_image(board)
     else:
         raise SystemExit(f"unknown stage {args.stage}")
 

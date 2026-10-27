@@ -16,9 +16,9 @@ import termios
 import time
 from pathlib import Path
 
-from harness.boards import load_board, read_stages, run_report_dir, stage_passed
+from hardware.records import load_board, read_stages, run_report_dir, stage_passed
 from hardware import probe
-from human import assent
+from operator import assent
 
 CARRIER_HZ = 38_000
 # Far above the receiver bandpass. A 10 kHz square wave still has harmonics
@@ -348,7 +348,7 @@ def run_loopback(board: dict) -> dict:
         if not stage_passed(board_id, prior):
             raise SystemExit(
                 f"{prior} stage has not passed. "
-                f"Next: HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
+                f"Next: OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
             )
     assent.require_ir_path("IR LED aimed at the IR receiver; loopback only")
     assent.confirm_ir("optical loopback from IR LED to IR receiver")

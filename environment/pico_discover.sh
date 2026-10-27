@@ -31,11 +31,11 @@ fi
 
 echo "=== mode ==="
 if lsusb -d 2e8a:0003 >/dev/null 2>&1; then
-  echo "BOOTSEL (2e8a:0003) — after present has passed: HUMAN_VERIFY=1 HUMAN_FLASH=1 make load-circuitpython"
+  echo "BOOTSEL (2e8a:0003) — after present has passed: OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make load-circuitpython"
 elif lsusb -d 2e8a:000a >/dev/null 2>&1; then
   echo "Pico SDK app CDC (2e8a:000a) — flash.sh will try picotool reboot -u -f then load -x"
 elif lsusb -d 2e8a:0005 >/dev/null 2>&1 || lsusb -d 239a: >/dev/null 2>&1; then
-  echo "CircuitPython — after present has passed: HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware"
+  echo "CircuitPython — after present has passed: OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware"
 elif lsusb -d cafe:4001 >/dev/null 2>&1; then
   echo "pico-serprog (cafe:4001) — picotool may not see this VID; hold BOOTSEL + replug for 2e8a:0003"
 else

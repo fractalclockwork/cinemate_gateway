@@ -19,9 +19,9 @@ from pathlib import Path
 
 import yaml
 
-from harness.boards import REPO_ROOT, load_board, reports_root, run_report_dir, stage_passed
+from hardware.records import REPO_ROOT, load_board, reports_root, run_report_dir, stage_passed
 from hardware.loopback import RawRepl, find_pico_serial
-from human import assent
+from operator import assent
 from software.decode import MAPPED_PROTOCOLS, classify_pulses, split_frames
 from software.profile import PROFILE_IDS, control_hid, load_profile
 
@@ -848,7 +848,7 @@ def run_unique_session(
         if not stage_passed(board_id, prior):
             raise SystemExit(
                 f"{prior} stage has not passed. "
-                f"Next: HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
+                f"Next: OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
             )
     pins = board.get("pins") or {}
     if pins.get("ir_rx") is None or pins.get("ir_tx") is None:
@@ -1090,7 +1090,7 @@ def run_confirm_map_session(
         if not stage_passed(board_id, prior):
             raise SystemExit(
                 f"{prior} stage has not passed. "
-                f"Next: HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
+                f"Next: OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
             )
     pins = board.get("pins") or {}
     if pins.get("ir_rx") is None or pins.get("ir_tx") is None:
@@ -1276,7 +1276,7 @@ def run_session(
         if not stage_passed(board_id, prior):
             raise SystemExit(
                 f"{prior} stage has not passed. "
-                f"Next: HUMAN_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
+                f"Next: OPERATOR_VERIFY=1 make stage BOARD={board_id} STAGE={prior}"
             )
     pins = board.get("pins") or {}
     if pins.get("ir_rx") is None or pins.get("ir_tx") is None:
@@ -1304,7 +1304,7 @@ def run_session(
     if buttons and buttons[0] != required:
         raise SystemExit(
             f"validate {required} before {buttons[0]}. "
-            f"Next: HUMAN_VERIFY=1 make capture BUTTON={required}"
+            f"Next: OPERATOR_VERIFY=1 make capture BUTTON={required}"
         )
     queue = [name for name in ALL_BUTTONS if name not in done]
 

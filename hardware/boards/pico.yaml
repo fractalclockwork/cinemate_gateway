@@ -12,9 +12,9 @@ firmware_target: circuitpython
 firmware_path: hardware/firmware/pico
 # Operator verifies the bench before every HWIL test. The Pico is the DUT.
 # DUT presence is the present stage result, not an operator flag.
-operator_verify: HUMAN_VERIFY
-operator_image: HUMAN_IR_PATH
-operator_firmware: HUMAN_FLASH
+operator_verify: OPERATOR_VERIFY
+operator_ir_path: OPERATOR_IR_PATH
+operator_firmware: OPERATOR_FLASH
 # IR TX ceilings — optical loopback / future TX only; fail-closed.
 ir_tx_ms: 50
 max_ir_tx_ms: 200
@@ -34,7 +34,7 @@ image_paths:
     primary: true
     note: >
       Short IR LED → IR RX optical path on the bench, or scripted Bose remote
-      AUX button presses into capture mode. Set HUMAN_IR_PATH=1. Phase 1 must
+      AUX button presses into capture mode. Set OPERATOR_IR_PATH=1. Phase 1 must
       not aim TX at the CineMate Interface module.
 control_buses:
   - id: usb

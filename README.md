@@ -1,36 +1,14 @@
 # cinemate-gateway
 
-Evidence-gated **Raspberry Pi Pico** gateway: receive the **Bose CineMate** universal remote in **AUX** mode and inject ordinary **USB HID** keyboard/media keys into **Chrome on Linux**.
+A Raspberry Pi Pico receives the Bose CineMate universal remote in AUX mode and types ordinary USB HID into Chrome on Linux.
 
-Normative requirements: [`docs/SPEC.md`](docs/SPEC.md). Phase 1 does **not** transmit IR to the CineMate Interface module; an IR LED is reserved for HWIL optical loopback and a later web/TX phase.
+Phase 1 does not transmit IR to the CineMate Interface. An IR LED is only for a short optical loopback on the bench.
 
 License: [MIT](LICENSE).
 
-## Documentation
+## Host check
 
-| Doc | Role |
-| --- | --- |
-| [`docs/SPEC.md`](docs/SPEC.md) | Product / system specification |
-| [`STATUS.md`](STATUS.md) | Living Decided / Open / handoff |
-| [`docs/README.md`](docs/README.md) | Full documentation index |
-| [`docs/manual-facts.md`](docs/manual-facts.md) | Manual vs measured remote facts |
-| [`AGENTS.md`](AGENTS.md) | Role-gated agent rules |
-| [`docs/methodology/`](docs/methodology/README.md) | SIL / HWIL evidence methodology |
-
-## Roles
-
-| Role | Tree |
-| --- | --- |
-| Human assent | [`human/`](human/) |
-| HWIL | [`hardware/`](hardware/) |
-| SIL | [`software/`](software/) |
-| Environment | [`environment/`](environment/) |
-| Lesson | [`lesson/`](lesson/) |
-| Harness | [`harness/`](harness/) |
-
-## Quick start (SIL)
-
-No hardware or assent required:
+No Pico and no operator flags:
 
 ```bash
 python3 -m venv .venv
@@ -39,48 +17,44 @@ make check
 make sim
 ```
 
-### Docker Dev-Host (crt-drive-style pico-dev)
+`make check` is decode, keymap, and HID report tests. `make sim` prints one synthetic HID fixture.
+
+## On the bench
+
+The operator sets the flags. Agents must not.
 
 ```bash
-make image          # ir-remote-bose/pico-dev:local
-make smoke
-make check-docker   # pytest in container
-make pico-discover  # USB inventory
-```
-
-See [`docker/README.md`](docker/README.md) and [`environment/README.md`](environment/README.md) for CircuitPython UF2 via `make load-circuitpython` (requires `HUMAN_VERIFY`, `HUMAN_FLASH`, and a `present` pass).
-
-## Protoboard (KiCad)
-
-Wire-wrap IR RX/TX front-end: [`docs/kicad/ir-gateway/`](docs/kicad/ir-gateway/). Process + human gates: [`docs/kicad/ir-gateway/AGENTS.md`](docs/kicad/ir-gateway/AGENTS.md). Design notes: [`docs/kicad/ir-gateway/hardware-design.md`](docs/kicad/ir-gateway/hardware-design.md).
-
-## HWIL bring-up (operator)
-
-Physical stages need operator assent (`HUMAN_*`). Follow [`hardware/docs/bringup.md`](hardware/docs/bringup.md) sections **A–D** (IR reception and button mapping can pass **without** HID or Chrome).
-
-```bash
-export HUMAN_VERIFY=1
+export OPERATOR_VERIFY=1
 make stage BOARD=pico STAGE=present
 make stage BOARD=pico STAGE=workflow
-HUMAN_VERIFY=1 make capture FRESH=1    # listen-only IR catalog
-```
 
-`make hwil` (`STAGE=image`) is a **SIL HID fixture** only (`sil-hid-fixture`)—not live optical or IR→HID proof. Prefer capture / `make loopback` stamps for physical IR. Flash after `present` has passed:
-
-```bash
-export HUMAN_VERIFY=1 HUMAN_FLASH=1
-make load-circuitpython
-# install adafruit_hid on CIRCUITPY/lib — see hardware/firmware/pico/README.md
+export OPERATOR_VERIFY=1 OPERATOR_FLASH=1
 make firmware
 ```
 
-## Keymap
+Button codes are learned with a listen, then mapped. That is a capture, not a lesson:
 
-Active map: [`software/keymap.yaml`](software/keymap.yaml) (kanopy / AUX+`20636`). Example for SIL fixtures: [`software/keymap.example.yaml`](software/keymap.example.yaml). Regenerate on-device fragment: `make firmware-keymap`.
+```bash
+OPERATOR_VERIFY=1 make capture FRESH=1
+```
 
-Chrome notes: [`docs/chrome-troubleshooting.md`](docs/chrome-troubleshooting.md). Player validation: [`docs/remote/player-validation-matrix.md`](docs/remote/player-validation-matrix.md).
+Bring-up detail: [`hardware/docs/bringup.md`](hardware/docs/bringup.md). Pins and CircuitPython: [`hardware/docs/boards/pico.md`](hardware/docs/boards/pico.md). Dev-host image: [`environment/README.md`](environment/README.md).
 
-## Phase 2 (deferred)
+## Amazon keymap
 
-Later: a small web app to control the Pico for (a) IR TX of CineMate on/off/vol and (b) the same browser HID controls. Requires capture library, TX under `max_ir_tx_*` ceilings, and new human assent before aiming IR at the Interface module. See [`docs/SPEC.md`](docs/SPEC.md) §5.
-# cinemate_gateway
+Active map: [`software/keymap.yaml`](software/keymap.yaml) (profile amazon, AUX Sony DVR `20636`). Regenerate the on-device fragment with `make firmware-keymap`.
+
+Player shortcuts and focus notes: [`docs/remote/amazon-chrome-shortcuts.md`](docs/remote/amazon-chrome-shortcuts.md).
+
+## Docs
+
+| Doc | What it is |
+| --- | --- |
+| [`docs/SPEC.md`](docs/SPEC.md) | Product requirements |
+| [`STATUS.md`](STATUS.md) | What is decided and still open |
+| [`docs/methodology/operator-loop.md`](docs/methodology/operator-loop.md) | What the host may prove, and what the operator confirms |
+| [`docs/kicad/ir-gateway/`](docs/kicad/ir-gateway/) | Wire-wrap protoboard |
+
+## Later
+
+A small web app may drive IR transmit for CineMate power and volume, plus the same browser keys. That needs a new operator flag before any IR is aimed at the Interface. See [`docs/SPEC.md`](docs/SPEC.md).

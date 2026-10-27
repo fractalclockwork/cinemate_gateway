@@ -32,8 +32,8 @@ Names below follow the owner’s guide where labeled; otherwise the face print.
 | `instant_replay` | Instant Replay | confirmed `1a:5b:9a` (same as `previous`) |
 | `menu` `guide` | Menu / Guide | confirmed `6f` / `73` |
 | `info` | Info | **unbound** |
-| `page_up` / `channel_up` | Page▲ / Channel▲ | confirmed `1a:10:9a` (shared) |
-| `page_down` / `channel_down` | Page▼ / Channel▼ | confirmed `1a:11:9a` (shared) |
+| `page_up` / `channel_up` | Page▲ / Channel▲ | confirmed `1a:10:9a` (shared IR — amazon keymap: **TAB**; see [`amazon-chrome-shortcuts.md`](amazon-chrome-shortcuts.md)) |
+| `page_down` / `channel_down` | Page▼ / Channel▼ | confirmed `1a:11:9a` (shared IR — amazon keymap: **SHIFT_TAB**) |
 | `stop` | Stop | **unbound** |
 | `pause` `play` `frw` `ffw` | Pause / Play / Scan | confirmed |
 | `record` `quick_skip` | Record / Quick Skip | confirmed `1d` / `72` |

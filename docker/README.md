@@ -6,7 +6,7 @@ Phase-1 application firmware remains **CircuitPython**. This image is for:
 
 - reproducible SIL (`make check-docker`)
 - interactive `shell` / `shell-usb`
-- `picotool` UF2 load of CircuitPython under human assent
+- `picotool` UF2 load of CircuitPython after the operator confirms the bench
 
 Quick path from the repository root:
 
@@ -23,11 +23,11 @@ CircuitPython UF2 (operator download → `archive/cache/circuitpython/raspberry_
 
 ```bash
 # Record DUT presence once (BOOTSEL or CircuitPython). Stands until present is run again.
-HUMAN_VERIFY=1 make stage BOARD=pico STAGE=present
+OPERATOR_VERIFY=1 make stage BOARD=pico STAGE=present
 # Pico in BOOTSEL
-HUMAN_VERIFY=1 HUMAN_FLASH=1 make load-circuitpython
+OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make load-circuitpython
 # Then after CIRCUITPY mounts:
-HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware
+OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware
 ```
 
 Sources: [`pico-dev/Dockerfile`](pico-dev/Dockerfile), pins in [`TOOLCHAIN_VERSIONS`](TOOLCHAIN_VERSIONS), Compose in this directory. Make: [`Makefile`](Makefile) and repo-root [`Makefile`](../Makefile).

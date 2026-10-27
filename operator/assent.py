@@ -3,8 +3,8 @@
 The operator validates and verifies the bench. The Pico is the device under
 test. USB presence is the present stage, not a flag in this module. Agents
 must not invent YES, bench verification, flash permission, or IR path
-confirmation. Only a person may set HUMAN_* flags or type YES at the prompt.
-A HWIL test waits until HUMAN_VERIFY=1.
+confirmation. Only the operator may set OPERATOR_* flags or type YES at the
+prompt. A HWIL test waits until OPERATOR_VERIFY=1.
 """
 
 from __future__ import annotations
@@ -12,10 +12,10 @@ from __future__ import annotations
 import os
 import sys
 
-VERIFY_ENV = "HUMAN_VERIFY"
-FLASH_ENV = "HUMAN_FLASH"
-IR_PATH_ENV = "HUMAN_IR_PATH"
-BUTTON_OK_ENV = "HUMAN_BUTTON_OK"
+VERIFY_ENV = "OPERATOR_VERIFY"
+FLASH_ENV = "OPERATOR_FLASH"
+IR_PATH_ENV = "OPERATOR_IR_PATH"
+BUTTON_OK_ENV = "OPERATOR_BUTTON_OK"
 SIM_ENV = "IR_GATEWAY_HWIL_SIM"
 
 

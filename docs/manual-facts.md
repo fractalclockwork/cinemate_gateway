@@ -52,7 +52,7 @@ Do not invent IR protocols, device codes, button encodings, or programming steps
 
 **TV** code-check: `10178`. TV controls work.
 
-**Unique capture (current):** AUX holds Sony DVR **`20636`** (`sony-dvr-20636`, code-check `2,0,6,3,6`). Also free to press **TV** `10178`. `HUMAN_VERIFY=1 make capture FRESH=1` is listen-only (no prompts); press keys freely, Ctrl+C when done. Map button→code afterwards from `unique_codes.json`.
+**Unique capture (current):** AUX holds Sony DVR **`20636`** (`sony-dvr-20636`, code-check `2,0,6,3,6`). Also free to press **TV** `10178`. `OPERATOR_VERIFY=1 make capture FRESH=1` is listen-only (no prompts); press keys freely, Ctrl+C when done. Map button→code afterwards from `unique_codes.json`.
 
 - Session `reports/pico/20261027T043341Z/captures/`: listen-only unique catalog (~47 unique / 105 hits).
 - **Operator protocol split:**

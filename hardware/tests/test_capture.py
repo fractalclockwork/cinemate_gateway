@@ -135,7 +135,11 @@ def test_button_table_maps_only_a_stable_unique_nec_wave(tmp_path: Path):
     amazon = dict(keymap_pairs(table, "amazon"))
     paramount = dict(keymap_pairs(table, "paramount"))
     youtube = dict(keymap_pairs(table, "youtubetv"))
+    up_key = next(row["frame_key"] for row in table["buttons"] if row["button"] == "up")
+    enter_key = next(row["frame_key"] for row in table["buttons"] if row["button"] == "enter")
     ffw_key = next(row["frame_key"] for row in table["buttons"] if row["button"] == "ffw")
+    assert amazon[up_key] == "MOUSE_UP"
+    assert amazon[enter_key] == "MOUSE_LEFT_CLICK"
     assert amazon[ffw_key] == "RIGHT"
     assert paramount[ffw_key] == "L"
     assert ffw_key not in youtube

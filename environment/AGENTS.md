@@ -10,6 +10,6 @@ Host toolchain and Docker image ownership.
 
 ## Forbidden
 
-- Setting `HUMAN_*` assent.
-- Running `load-circuitpython` or `make firmware` without routing through human assent (those targets refuse unless the operator exported the flags).
+- Setting `OPERATOR_*` assent.
+- Running `load-circuitpython` or `make firmware` without operator confirmation (those targets refuse unless the operator exported the flags).
 - Flashing toward the CineMate (phase 1 has no amp TX).

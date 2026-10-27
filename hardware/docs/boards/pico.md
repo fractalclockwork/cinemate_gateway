@@ -3,7 +3,7 @@
 ## Confirmed
 
 - Board: **Raspberry Pi Pico** (standard, non-W) over **USB** to a **Linux** host.
-- Role: IR **receive** from Bose CineMate universal remote (AUX mode) → **USB HID** keyboard/consumer control for Chrome.
+- Role: IR **receive** from Bose CineMate universal remote (AUX mode) → **USB HID** keyboard/consumer control/mouse for Chrome.
 - IR **LED** reserved for HWIL optical loopback (phase 1) and future CineMate TX (phase 2).
 
 ## Depends on part datasheets (do not invent)
@@ -30,7 +30,7 @@ Bootloader / CircuitPython product IDs vary by firmware. Board YAML lists Raspbe
 
 ## Firmware
 
-CircuitPython sources under [`../../firmware/pico/`](../../firmware/pico/). After `present` has passed: `HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware`.
+CircuitPython sources under [`../../firmware/pico/`](../../firmware/pico/). After `present` has passed: `OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware`.
 
 
 ## Decided GPIO (protoboard)

@@ -1,4 +1,4 @@
-"""Import rules: consumers must not pull hardware flash/TX modules."""
+"""Import rules: host software must not pull hardware flash or operator confirmation."""
 
 from __future__ import annotations
 
@@ -6,10 +6,8 @@ import ast
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-LESSON_LABS = REPO_ROOT / "lesson" / "labs"
-HUMAN_DIR = REPO_ROOT / "human"
+OPERATOR_DIR = REPO_ROOT / "operator"
 SOFTWARE_DIR = REPO_ROOT / "software"
-HARNESS_DIR = REPO_ROOT / "harness"
 
 FORBIDDEN_HARDWARE = {
     "hardware",
@@ -39,35 +37,16 @@ def _imports(path: Path) -> set[str]:
     return found
 
 
-def test_lesson_labs_do_not_import_hardware():
-    if not LESSON_LABS.is_dir():
-        return
-    offenders = []
-    for path in sorted(LESSON_LABS.glob("*.py")):
-        mods = _imports(path)
-        bad = mods & FORBIDDEN_HARDWARE
-        if bad:
-            offenders.append(f"{path.name}: {sorted(bad)}")
-    assert not offenders, "lesson labs imported hardware modules:\n" + "\n".join(offenders)
-
-
-def test_human_assent_does_not_import_hardware():
-    for path in sorted(HUMAN_DIR.glob("*.py")):
+def test_operator_assent_does_not_import_hardware():
+    for path in sorted(OPERATOR_DIR.glob("*.py")):
         mods = _imports(path)
         assert not (mods & FORBIDDEN_HARDWARE), f"{path.name} imported {mods & FORBIDDEN_HARDWARE}"
 
 
-def test_software_does_not_import_hardware_human_or_environment():
-    forbidden = FORBIDDEN_HARDWARE | {"human", "environment"}
+def test_software_does_not_import_hardware_operator_or_environment():
+    forbidden = FORBIDDEN_HARDWARE | {"operator", "environment"}
     for path in sorted(SOFTWARE_DIR.rglob("*.py")):
         if "tests" in path.parts:
             continue
         mods = _imports(path)
         assert not (mods & forbidden), f"{path.relative_to(REPO_ROOT)} imported {mods & forbidden}"
-
-
-def test_harness_does_not_import_hardware_or_human():
-    forbidden = FORBIDDEN_HARDWARE | {"human"}
-    for path in sorted(HARNESS_DIR.glob("*.py")):
-        mods = _imports(path)
-        assert not (mods & forbidden), f"{path.name} imported {mods & forbidden}"

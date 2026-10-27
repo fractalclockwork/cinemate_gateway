@@ -1,6 +1,6 @@
 # Environment
 
-Dev-Host toolchain for the IR gateway. Owns the **pico-dev** Docker image (adapted from crt-drive); does not set `HUMAN_*` assent.
+Dev-Host toolchain for the IR gateway. Owns the **pico-dev** Docker image (adapted from crt-drive); does not set `OPERATOR_*` assent.
 
 ## Host venv (fast SIL)
 
@@ -35,27 +35,23 @@ Follow the same Dev-Host rules as crt-drive [`.cursor/skills/pico-dev-hil`](/hom
 5. Record DUT presence once (BOOTSEL or CircuitPython). That pass stands until you run `present` again:
 
    ```bash
-   HUMAN_VERIFY=1 make stage BOARD=pico STAGE=present
+   OPERATOR_VERIFY=1 make stage BOARD=pico STAGE=present
    ```
 
 6. Load uses the present pass. Re-run `present` when the USB identity to record has changed:
 
    ```bash
-   HUMAN_VERIFY=1 HUMAN_FLASH=1 make load-circuitpython
+   OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make load-circuitpython
    ```
 
-7. After reboot, mount `CIRCUITPY` and install **`adafruit_hid`** (required for HID map mode):
-
-   - Download the [Adafruit CircuitPython Library Bundle](https://circuitpython.org/libraries) matching your CircuitPython major version.
-   - Copy the `adafruit_hid` folder into `CIRCUITPY/lib/adafruit_hid/`.
-   - `make firmware` warns if `lib/adafruit_hid` is missing after copy.
-
-8. Deploy app + regenerated keymap:
+7. After reboot, mount `CIRCUITPY` and deploy the app tree (includes vendored **`lib/adafruit_hid`**):
 
    ```bash
-   HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware
+   OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware
    ```
 
-Alternate host path: drag the UF2 onto the RPI-RP2 volume, then still use `HUMAN_VERIFY=1 HUMAN_FLASH=1 make firmware` for `code.py` / `keymap_gen.py` after `present` has passed.
+   That copies `code.py`, `keymap_gen.py`, `boot.py`, and `lib/adafruit_hid/` recursively. Deploy **exits non-zero** if `adafruit_hid` is missing after copy. CircuitPython UF2 itself is still required once (steps 2–6).
 
-Agents must never set `HUMAN_VERIFY` / `HUMAN_FLASH`. Do not leave an interactive shell open in the container for flashing.
+Alternate host path: drag the UF2 onto the RPI-RP2 volume, then still use `OPERATOR_VERIFY=1 OPERATOR_FLASH=1 make firmware` for the app + libs after `present` has passed.
+
+Agents must never set `OPERATOR_VERIFY` / `OPERATOR_FLASH`. Do not leave an interactive shell open in the container for flashing.

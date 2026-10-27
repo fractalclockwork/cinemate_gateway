@@ -1,4 +1,4 @@
-"""Load board manifests and stage records (harness orchestration only)."""
+"""Board manifests and stage records for the Pico bench."""
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HARDWARE_ROOT = REPO_ROOT / "hardware"
-STAGES = ("present", "workflow", "image")
-ORDER = ("pico",)
+STAGES = ("present", "workflow")
 
 
 def board_path(board_id: str) -> Path:

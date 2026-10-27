@@ -86,7 +86,7 @@ def run_image_fixture(
         },
         "fixture": base,
         "note": (
-            "SIL HID fixture only. Physical IR = capture/loopback under "
-            "reports/pico/<stamp>/; use harness.ready.require_ir_map for IR identity."
+            "SIL HID fixture only. Physical IR identity is a capture stamp "
+            "under reports/pico/<stamp>/captures/."
         ),
     }

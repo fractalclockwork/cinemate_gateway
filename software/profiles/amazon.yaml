@@ -1,21 +1,35 @@
-# Prime Video player shortcuts. Arrows seek or change player volume.
-# Enter and digits are not in the published player list.
+# Prime Video player + gateway pointer/focus bindings.
+# Published shortcuts: https://www.primevideo.com/help?nodeId=GE4VW9VWJD7FM6DR
+# Page▲/Channel▲ share IR 1a:10:9a; Page▼/Channel▼ share 1a:11:9a — one HID each
+# (TAB / SHIFT_TAB preferred for Prime focus / next-episode UI). See
+# docs/remote/amazon-chrome-shortcuts.md.
 id: amazon
 surface: player
-source: https://www.amazon.com/gp/help/customer/display.html?nodeId=GH5GWCRVQCKEEFM8
+source: https://www.primevideo.com/help?nodeId=GE4VW9VWJD7FM6DR
 remote: sony-dvr-20636
 controls:
-  up: {hid: UP, ui: volume_up}
-  down: {hid: DOWN, ui: volume_down}
-  left: {hid: LEFT, ui: seek_back}
-  right: {hid: RIGHT, ui: seek_forward}
-  enter: {hid: null, ui: unbound}
+  up: {hid: MOUSE_UP, ui: pointer_up}
+  down: {hid: MOUSE_DOWN, ui: pointer_down}
+  left: {hid: MOUSE_LEFT, ui: pointer_left}
+  right: {hid: MOUSE_RIGHT, ui: pointer_right}
+  enter: {hid: MOUSE_LEFT_CLICK, ui: click}
   back: {hid: ESCAPE, ui: exit_playback}
   play: {hid: SPACE, ui: play_pause}
   pause: {hid: SPACE, ui: play_pause}
-  stop: {hid: ESCAPE, ui: exit_playback}
+  stop: {hid: null, ui: unbound}
   ffw: {hid: RIGHT, ui: seek_forward}
   frw: {hid: LEFT, ui: seek_back}
+  # Forward curved arrow. Record owns fullscreen; this switches windows.
+  quick_skip: {hid: ALT_TAB, ui: switch_window}
+  # Backward curved arrow (Instant Replay). Same IR as previous: 1a:5b:9a.
+  instant_replay: {hid: SHIFT_ALT_TAB, ui: switch_window_prev}
+  record: {hid: F, ui: fullscreen}
+  # Shared IR with page_up — Tab for Chrome/Prime focus navigation.
+  channel_up: {hid: TAB, ui: focus_next}
+  channel_down: {hid: SHIFT_TAB, ui: focus_prev}
+  # Same IR as channel_*; left unbound so keymap_pairs stays unique.
+  page_up: {hid: null, ui: alias_channel_up_ir}
+  page_down: {hid: null, ui: alias_channel_down_ir}
   "0": {hid: null, ui: unbound}
   "1": {hid: null, ui: unbound}
   "2": {hid: null, ui: unbound}
