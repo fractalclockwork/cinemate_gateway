@@ -2,9 +2,20 @@
 
 Evidence-gated **Raspberry Pi Pico** gateway: receive the **Bose CineMate** universal remote in **AUX** mode and inject ordinary **USB HID** keyboard/media keys into **Chrome on Linux**.
 
-Phase 1 does **not** transmit IR to the CineMate Interface module. An IR LED is reserved for HWIL optical loopback and a later web/TX phase.
+Normative requirements: [`docs/SPEC.md`](docs/SPEC.md). Phase 1 does **not** transmit IR to the CineMate Interface module; an IR LED is reserved for HWIL optical loopback and a later web/TX phase.
 
-Manual facts (verified vs test): [`docs/manual-facts.md`](docs/manual-facts.md). Methodology: [`docs/methodology/`](docs/methodology/README.md). Agentic rules: [`AGENTS.md`](AGENTS.md). Living status: [`STATUS.md`](STATUS.md). Post-mortem: [`docs/postmortem-agentic-bringup.md`](docs/postmortem-agentic-bringup.md).
+License: [MIT](LICENSE).
+
+## Documentation
+
+| Doc | Role |
+| --- | --- |
+| [`docs/SPEC.md`](docs/SPEC.md) | Product / system specification |
+| [`STATUS.md`](STATUS.md) | Living Decided / Open / handoff |
+| [`docs/README.md`](docs/README.md) | Full documentation index |
+| [`docs/manual-facts.md`](docs/manual-facts.md) | Manual vs measured remote facts |
+| [`AGENTS.md`](AGENTS.md) | Role-gated agent rules |
+| [`docs/methodology/`](docs/methodology/README.md) | SIL / HWIL evidence methodology |
 
 ## Roles
 
@@ -18,6 +29,8 @@ Manual facts (verified vs test): [`docs/manual-facts.md`](docs/manual-facts.md).
 | Harness | [`harness/`](harness/) |
 
 ## Quick start (SIL)
+
+No hardware or assent required:
 
 ```bash
 python3 -m venv .venv
@@ -39,34 +52,34 @@ See [`docker/README.md`](docker/README.md) and [`environment/README.md`](environ
 
 ## Protoboard (KiCad)
 
-Wire-wrap IR RX/TX front-end (crt-drive Manhattan / jumper layers): [`docs/kicad/ir-gateway/`](docs/kicad/ir-gateway/). Process + human gates: [`docs/kicad/ir-gateway/AGENTS.md`](docs/kicad/ir-gateway/AGENTS.md). After placement is verified, `python3 docs/kicad/ir-gateway/_snap_route.py` (`+3V3`=`F.Cu`, `GND`=`B.Cu`, signals on `JumperN`). Design notes: [`docs/kicad/ir-gateway/hardware-design.md`](docs/kicad/ir-gateway/hardware-design.md).
+Wire-wrap IR RX/TX front-end: [`docs/kicad/ir-gateway/`](docs/kicad/ir-gateway/). Process + human gates: [`docs/kicad/ir-gateway/AGENTS.md`](docs/kicad/ir-gateway/AGENTS.md). Design notes: [`docs/kicad/ir-gateway/hardware-design.md`](docs/kicad/ir-gateway/hardware-design.md).
 
-## HWIL bring-up
+## HWIL bring-up (operator)
 
-See [`hardware/docs/bringup.md`](hardware/docs/bringup.md).
-
-`present` probes USB once. That pass stands until you run `present` again. Later commands use the record and still require `HUMAN_VERIFY` in that process.
+Physical stages need operator assent (`HUMAN_*`). Follow [`hardware/docs/bringup.md`](hardware/docs/bringup.md) sections **A–D** (IR reception and button mapping can pass **without** HID or Chrome).
 
 ```bash
 export HUMAN_VERIFY=1
 make stage BOARD=pico STAGE=present
 make stage BOARD=pico STAGE=workflow
-export HUMAN_IR_PATH=1
-make hwil BOARD=pico
+HUMAN_VERIFY=1 make capture FRESH=1    # listen-only IR catalog
 ```
 
-Flash after `present` has passed. Re-run `present` when the USB identity to record has changed (BOOTSEL versus CircuitPython).
+`make hwil` (`STAGE=image`) is a **SIL HID fixture** only (`sil-hid-fixture`)—not live optical or IR→HID proof. Prefer capture / `make loopback` stamps for physical IR. Flash after `present` has passed:
 
 ```bash
 export HUMAN_VERIFY=1 HUMAN_FLASH=1
 make load-circuitpython
+# install adafruit_hid on CIRCUITPY/lib — see hardware/firmware/pico/README.md
 make firmware
 ```
 
 ## Keymap
 
-Editable example: [`software/keymap.example.yaml`](software/keymap.example.yaml). Copy to `software/keymap.yaml` after real AUX captures. Chrome notes: [`docs/chrome-troubleshooting.md`](docs/chrome-troubleshooting.md). Player validation matrix: [`docs/remote/player-validation-matrix.md`](docs/remote/player-validation-matrix.md).
+Active map: [`software/keymap.yaml`](software/keymap.yaml) (kanopy / AUX+`20636`). Example for SIL fixtures: [`software/keymap.example.yaml`](software/keymap.example.yaml). Regenerate on-device fragment: `make firmware-keymap`.
+
+Chrome notes: [`docs/chrome-troubleshooting.md`](docs/chrome-troubleshooting.md). Player validation: [`docs/remote/player-validation-matrix.md`](docs/remote/player-validation-matrix.md).
 
 ## Phase 2 (deferred)
 
-Later: a small web app to control the Pico remotely for (a) IR TX of CineMate on/off/vol and (b) the same browser HID controls. Requires capture library, TX under `max_ir_tx_*` ceilings, and new human assent before aiming IR at the Interface module.
+Later: a small web app to control the Pico for (a) IR TX of CineMate on/off/vol and (b) the same browser HID controls. Requires capture library, TX under `max_ir_tx_*` ceilings, and new human assent before aiming IR at the Interface module. See [`docs/SPEC.md`](docs/SPEC.md) §5.

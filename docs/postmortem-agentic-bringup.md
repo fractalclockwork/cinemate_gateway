@@ -28,7 +28,7 @@ Highest-leverage next moves: a living `STATUS.md`, a blink observation worksheet
 
 ## 2. Project reconstruction
 
-### 2.1 Intended system (**Verified** from [`PROMPT.md`](../PROMPT.md), [`README.md`](../README.md), [`docs/methodology/domain.md`](methodology/domain.md))
+### 2.1 Intended system (**Verified** from [`SPEC.md`](SPEC.md) — formerly root `PROMPT.md` — plus [`README.md`](../README.md), [`docs/methodology/domain.md`](methodology/domain.md))
 
 - **Input:** CineMate universal remote; prefer AUX programmed with a library device code (VCR/DVR lists; no separate “AUX” code book).
 - **Gateway:** Pico IR RX → decode → keymap → USB HID keyboard/consumer control for Chrome.
@@ -111,7 +111,7 @@ flowchart LR
 
 | Finding | Evidence | Impact | Confidence |
 | --- | --- | --- | --- |
-| Goal clear enough to pick hardware/libs | [`PROMPT.md`](../PROMPT.md), CHQ1838 + Pico docs, CircuitPython HID intent | Fast early architecture | **Verified** / **Reported** |
+| Goal clear enough to pick hardware/libs | Early brief (now [`SPEC.md`](SPEC.md)), CHQ1838 + Pico docs, CircuitPython HID intent | Fast early architecture | **Verified** / **Reported** |
 | Evidence-gated roles + assent | Root [`AGENTS.md`](../AGENTS.md), `human/assent.py`, methodology mapping | Agents cannot forge physical compliance | **Verified** |
 | SIL decode including SIRC-20 | `software/decode.py`, 39 pytest pass | Offline progress without USB | **Verified** |
 | Listen-only capture + confirm-map | `20261027T043341Z` unique catalog + `validated.json` | Real AUX button library without inventing IR | **Verified** |

@@ -1,7 +1,7 @@
 # STATUS — ir-remote-bose
 
 Living handoff. Agents: read this before broad search. Update at end of each session.
-Full post-mortem: [`docs/postmortem-agentic-bringup.md`](docs/postmortem-agentic-bringup.md).
+Spec: [`docs/SPEC.md`](docs/SPEC.md). Doc index: [`docs/README.md`](docs/README.md). Post-mortem: [`docs/postmortem-agentic-bringup.md`](docs/postmortem-agentic-bringup.md).
 
 ## Decided
 

@@ -16,4 +16,4 @@ This repo is structured by **role**. Agents must stand in one role at a time and
 
 Evidence under `reports/` is the only unlock token across roles.
 
-Living handoff: [`STATUS.md`](STATUS.md). Methodology: [`docs/methodology/`](docs/methodology/README.md). Manual facts: [`docs/manual-facts.md`](docs/manual-facts.md). Post-mortem: [`docs/postmortem-agentic-bringup.md`](docs/postmortem-agentic-bringup.md).
+Spec: [`docs/SPEC.md`](docs/SPEC.md). Living handoff: [`STATUS.md`](STATUS.md). Methodology: [`docs/methodology/`](docs/methodology/README.md). Manual facts: [`docs/manual-facts.md`](docs/manual-facts.md). Doc index: [`docs/README.md`](docs/README.md).
