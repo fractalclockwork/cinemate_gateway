@@ -2,7 +2,7 @@
 
 Agents work one tree at a time and follow that tree’s `AGENTS.md`.
 
-**Terminology:** The **operator** confirms the bench and is the end user of the gateway. The **Pico** is the device under test. The **host** may measure USB identity, decode, and HID report bytes. It may not claim that the player paused, that the pointer feels right, or that a window is focused. **HWIL** means a command that touches the Pico or the IR path. Every HWIL command waits until `OPERATOR_VERIFY=1`. DUT presence is the `present` stage; that pass stands until the operator runs `present` again. A capture `session.json` is an IR listen, not the presence record. The `environment/` tree is the Dev-Host toolchain, not the bench. Confirmation flags are `OPERATOR_VERIFY`, `OPERATOR_FLASH`, and `OPERATOR_IR_PATH`.
+**Terminology:** The **operator** confirms the bench and is the end user of the gateway. The **Pico** is the device under test. The **host** may measure USB identity, decode, and HID report bytes. It may not claim that the player paused, that the pointer feels right, or that a window is focused. **HWIL** means a command that touches the Pico or the IR path. Every HWIL command waits until `OPERATOR_VERIFY=1`. DUT presence is the `present` stage; that pass stands until the operator runs `present` again. A capture `session.json` is an IR listen, not the presence record. The `environment/` tree is the Dev-Host toolchain, not the bench. Confirmation flags: `OPERATOR_VERIFY` (all HWIL), `OPERATOR_FLASH` (**UF2 / picotool only** — not CIRCUITPY `make firmware`), `OPERATOR_IR_PATH` (optical loopback).
 
 | Tree | May invent? | Notes |
 | --- | --- | --- |

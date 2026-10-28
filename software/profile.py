@@ -1,7 +1,8 @@
-"""Streaming-app HID encodings for one stored AUX remote.
+"""Streaming-app HID encodings for programmed remote personalities.
 
-The remote record is the programmed library code. Each app profile encodes
-remote buttons as the keyboard usages that app's published UI handles.
+Each Bose source (TV / CBL-SAT / DVD / VCR / AUX) may hold a different library code. Profiles
+bind to one personality id; the host keymap is the union of those IR→HID
+rows. Profiles must not invent IR codes.
 """
 
 from __future__ import annotations
@@ -34,7 +35,48 @@ def load_remote(path: Path | None = None) -> dict:
         raise ValueError(f"{target} missing on_off.confirmed")
     if on_off.get("confirmed") and not on_off.get("frame_key") and not on_off.get("signature"):
         raise ValueError(f"{target} confirmed on_off needs frame_key or signature")
+    personalities = personalities_from_remote(data)
+    if personality not in personalities:
+        raise ValueError(
+            f"{target} primary personality {personality!r} missing from personalities list"
+        )
     return data
+
+
+def personalities_from_remote(data: dict) -> dict[str, dict]:
+    """Map personality id → record (source, library_code, profile, …)."""
+    rows = data.get("personalities")
+    if not isinstance(rows, list) or not rows:
+        # Legacy single-personality remote.yaml
+        return {
+            str(data["personality"]): {
+                "id": str(data["personality"]),
+                "source": data.get("source"),
+                "library_code": str(data.get("library_code") or ""),
+                "list": data.get("list"),
+                "profile": None,
+            }
+        }
+    out: dict[str, dict] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("personalities entries must be dicts")
+        pid = str(row.get("id") or "")
+        code = str(row.get("library_code") or "")
+        if not pid or not code:
+            raise ValueError("each personality needs id and library_code")
+        if not pid.endswith(code):
+            raise ValueError(f"personality {pid!r} does not end with library_code {code}")
+        if pid in out:
+            raise ValueError(f"duplicate personality id {pid!r}")
+        out[pid] = dict(row)
+        out[pid]["id"] = pid
+        out[pid]["library_code"] = code
+    return out
+
+
+def known_personality_ids(path: Path | None = None) -> set[str]:
+    return set(personalities_from_remote(load_remote(path)))
 
 
 def validate_controls(controls: dict) -> None:
@@ -52,10 +94,11 @@ def validate_controls(controls: dict) -> None:
         resolve_action(name)
 
 
-def validate_profile(data: dict, remote_personality: str) -> dict:
-    if data.get("remote") != remote_personality:
+def validate_profile(data: dict, known_personalities: set[str]) -> dict:
+    remote = data.get("remote")
+    if remote not in known_personalities:
         raise ValueError(
-            f"profile remote {data.get('remote')!r} != {remote_personality}"
+            f"profile remote {remote!r} not in known personalities {sorted(known_personalities)}"
         )
     if not data.get("id") or not data.get("source"):
         raise ValueError("profile needs id and source")
@@ -70,7 +113,7 @@ def load_profile(profile_id: str, path: Path | None = None) -> dict:
     data = yaml.safe_load(target.read_text()) or {}
     if data.get("id") != profile_id:
         raise ValueError(f"{target} id is {data.get('id')!r}")
-    return validate_profile(data, load_remote()["personality"])
+    return validate_profile(data, known_personality_ids())
 
 
 def control_hid(profile: dict, button: str) -> str | None:

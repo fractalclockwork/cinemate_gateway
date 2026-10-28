@@ -5,13 +5,56 @@ Record observed results. IR identity can be confirmed before HID; Chrome/player 
 **Remote mode:** AUX + Sony DVR `20636` unless noted.  
 **IR evidence:** `reports/pico/20261027T043341Z/captures/` (`validated.json`, `aux_dvr_20636_map.yaml`).  
 **Profiles:** [`software/profiles/`](../../software/profiles/). Active host keymap: **amazon**.  
+**Multi-source slots** (face left → right): [ADR 004](../decisions/004-multi-source-personalities.md) — TV/`10178` (no player), CBL-SAT/`21033`→paramount, DVD/`20533`→kanopy, VCR/`20033`→youtubetv, AUX/`20636`→amazon.  
 **Amazon shortcuts / IR conflict notes:** [`amazon-chrome-shortcuts.md`](amazon-chrome-shortcuts.md).
 
 Status values: `pass` | `fail` | `blocked` | `unbound` | `not_run`.
 
 Columns: player, button, remote_mode, frame_key, mapped_hid, expected_ui, actual, status, evidence.
 
-## Amazon Prime Video (priority)
+## Paramount+ (CBL-SAT / `21033`)
+
+Profile: [`software/profiles/paramount.yaml`](../../software/profiles/paramount.yaml) (`remote: cblsat-21033`).  
+SIRC-20 `1a:cmd:62` (unique) + some `1a:cmd:49` shared with DVD ([ADR 004](../decisions/004-multi-source-personalities.md)).
+
+| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| paramount | _(label + map next)_ | CBL-SAT/21033 | `1a:*:62` / shared `:49` | | | | not_run | tio probe 2026-10-28 |
+
+## Kanopy (DVD / `20533`)
+
+Profile: [`software/profiles/kanopy.yaml`](../../software/profiles/kanopy.yaml) (`remote: dvd-20533`). Source: https://help.kanopy.com/en-us/4140.htm  
+SIRC-20 `1a:cmd:49` (includes stop). Do not reuse AUX `1a:*:9a` frames.
+
+| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kanopy | _(rows after labeled map)_ | DVD/20533 | `1a:*:49` | | | | not_run | tio probe 2026-10-28 |
+
+## YouTube TV (VCR / `20033`)
+
+Profile: [`software/profiles/youtubetv.yaml`](../../software/profiles/youtubetv.yaml) (`remote: vcr-20033`). Purpose + HID mirror amazon ([ADR 003](../decisions/003-vcr-youtubetv-personality.md), [`youtubetv-chrome-shortcuts.md`](youtubetv-chrome-shortcuts.md)). IR: SIRC-12 `2:cmd`.
+
+| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| youtubetv | play | VCR/20033 | sony-sirc12:2:1a | SPACE | play_pause | | not_run | |
+| youtubetv | pause | VCR/20033 | sony-sirc12:2:19 | SPACE | play_pause | | not_run | operator: pause OK |
+| youtubetv | ffw | VCR/20033 | sony-sirc12:2:1c | RIGHT | seek_forward | | not_run | |
+| youtubetv | frw | VCR/20033 | sony-sirc12:2:1b | LEFT | seek_back | | not_run | operator: left/right seek OK |
+| youtubetv | record | VCR/20033 | sony-sirc12:2:1d | F | fullscreen | | not_run | |
+| youtubetv | up | VCR/20033 | sony-sirc12:2:42 | MOUSE_UP | pointer_up | | not_run | labeled unmapped (2,66) |
+| youtubetv | down | VCR/20033 | sony-sirc12:2:43 | MOUSE_DOWN | pointer_down | | not_run | labeled unmapped (2,67) |
+| youtubetv | left | VCR/20033 | sony-sirc12:2:62 | MOUSE_LEFT | pointer_left | | not_run | hid seen in tio |
+| youtubetv | right | VCR/20033 | sony-sirc12:2:61 | MOUSE_RIGHT | pointer_right | | not_run | hid seen in tio |
+| youtubetv | enter | VCR/20033 | sony-sirc12:2:51 | MOUSE_LEFT_CLICK | click | | not_run | labeled unmapped (2,81) |
+| youtubetv | back | VCR/20033 | sony-sirc12:2:2a | ESCAPE | exit_playback | | not_run | labeled unmapped (2,42) |
+| youtubetv | instant_replay | VCR/20033 | sony-sirc12:b4:5b | SHIFT_ALT_TAB | switch_window_prev | | not_run | labeled unmapped (180,91) |
+| youtubetv | quick_skip | VCR/20033 | — | — | unbound | no IR TX | unbound | forward curve silent on 20033 |
+| youtubetv | channel_up | VCR/20033 | sony-sirc12:2:10 | UP | arrow_up | | not_run | hold accelerates 0.40→0.08 s |
+| youtubetv | channel_down | VCR/20033 | sony-sirc12:2:11 | DOWN | arrow_down | | not_run | |
+| youtubetv | page_up | VCR/20033 | sony-sirc15:b4:60 | PAGE_UP | page_up | | not_run | distinct from channel; hold accelerates |
+| youtubetv | page_down | VCR/20033 | sony-sirc15:b4:62 | PAGE_DOWN | page_down | | not_run | |
+
+## Amazon Prime Video (AUX / `20636`)
 
 Profile: [`software/profiles/amazon.yaml`](../../software/profiles/amazon.yaml). Source: https://www.primevideo.com/help?nodeId=GE4VW9VWJD7FM6DR  
 Procedure: focus Chrome on a playing Prime title, then press the remote.
@@ -31,46 +74,10 @@ Procedure: focus Chrome on a playing Prime title, then press the remote.
 | amazon | left | AUX/20636 | sony-sirc20:1a:62:9a | MOUSE_LEFT | pointer_left | | not_run | IR confirmed; HID/Chrome pending |
 | amazon | right | AUX/20636 | sony-sirc20:1a:61:9a | MOUSE_RIGHT | pointer_right | | not_run | IR confirmed; HID/Chrome pending |
 | amazon | enter | AUX/20636 | sony-sirc20:1a:5e:9a | MOUSE_LEFT_CLICK | click | | not_run | Pointer must be over control first |
-| amazon | channel_up (page_up alias) | AUX/20636 | sony-sirc20:1a:10:9a | TAB | focus_next | | not_run | Shared IR with page_up — see shortcuts doc |
-| amazon | channel_down (page_down alias) | AUX/20636 | sony-sirc20:1a:11:9a | SHIFT_TAB | focus_prev | | not_run | Shared IR with page_down |
+| amazon | channel_up (page_up alias) | AUX/20636 | sony-sirc20:1a:10:9a | UP | arrow_up | | not_run | Shared IR with page_up; hold accelerates |
+| amazon | channel_down (page_down alias) | AUX/20636 | sony-sirc20:1a:11:9a | DOWN | arrow_down | | not_run | Shared IR with page_down |
 | amazon | stop | AUX/20636 | — | — | unbound | no IR TX | unbound | Stop silent on this personality |
 | amazon | 0–9 | AUX/20636 | see map | null | unbound | | unbound | Digits IR-confirmed; profile leaves HID null |
-
-## Kanopy (deferred)
-
-Profile: [`software/profiles/kanopy.yaml`](../../software/profiles/kanopy.yaml). Source: https://help.kanopy.com/en-us/4140.htm  
-Fill after Amazon HID smoke; switch keymap `profile:` + redeploy when testing.
-
-| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| kanopy | up | AUX/20636 | sony-sirc20:1a:5f:9a | UP | arrow | | not_run | IR confirmed; deferred behind amazon |
-| kanopy | down | AUX/20636 | sony-sirc20:1a:60:9a | DOWN | arrow | | not_run | IR confirmed; deferred |
-| kanopy | left | AUX/20636 | sony-sirc20:1a:62:9a | LEFT | seek_back | | not_run | IR confirmed; deferred |
-| kanopy | right | AUX/20636 | sony-sirc20:1a:61:9a | RIGHT | seek_forward | | not_run | IR confirmed; deferred |
-| kanopy | enter | AUX/20636 | sony-sirc20:1a:5e:9a | ENTER | activate | | not_run | IR confirmed; deferred |
-| kanopy | back | AUX/20636 | sony-sirc20:1a:63:9a | ESCAPE | exit_fullscreen | | not_run | IR confirmed; deferred |
-| kanopy | play | AUX/20636 | sony-sirc20:1a:1a:9a | SPACE | play_pause | | not_run | IR confirmed; deferred |
-| kanopy | pause | AUX/20636 | sony-sirc20:1a:19:9a | SPACE | play_pause | | not_run | IR confirmed; deferred |
-| kanopy | ffw | AUX/20636 | sony-sirc20:1a:1c:9a | RIGHT | seek_forward | | not_run | IR confirmed; deferred |
-| kanopy | frw | AUX/20636 | sony-sirc20:1a:1b:9a | LEFT | seek_back | | not_run | IR confirmed; deferred |
-| kanopy | stop | AUX/20636 | — | — | unbound | no IR TX | unbound | Stop silent on this personality |
-| kanopy | 0–9 | AUX/20636 | see map | null | unbound | | unbound | Digits IR-confirmed; profile leaves HID null |
-
-## Paramount+
-
-Profile: [`software/profiles/paramount.yaml`](../../software/profiles/paramount.yaml).
-
-| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| paramount | _(rows TBD)_ | AUX/20636 | | | | | not_run | |
-
-## YouTube TV
-
-Profile: [`software/profiles/youtubetv.yaml`](../../software/profiles/youtubetv.yaml).
-
-| player | button | remote_mode | frame_key | mapped_hid | expected_ui | actual | status | evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| youtubetv | _(rows TBD)_ | AUX/20636 | | | | | not_run | Many controls unbound in profile by design |
 
 ## How to run a row
 

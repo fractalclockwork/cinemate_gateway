@@ -1,8 +1,9 @@
 # Kanopy keyboard controls with no player button focused.
+# Phase B: DVD + Sony 20533 (ADR 004). No DVD IR in keymap until capture.
 id: kanopy
 surface: player
 source: https://help.kanopy.com/en-us/4140.htm
-remote: sony-dvr-20636
+remote: dvd-20533
 controls:
   up: {hid: UP, ui: arrow}
   down: {hid: DOWN, ui: arrow}

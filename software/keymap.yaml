@@ -1,15 +1,58 @@
-# Sony DVR library code 20636 staged on AUX.
-# Frame keys are measured; agreeing a/b samples accept each button.
-# Evidence: reports/pico/20261027T043341Z/captures/validated.json
-# Active profile: amazon (Prime Video). page/channel rocker shares IR —
-# bound as TAB / SHIFT_TAB (see docs/remote/amazon-chrome-shortcuts.md).
+# Union IR→HID map. Face left → right: TV / CBL-SAT / DVD / VCR / AUX.
+# AUX Sony DVR 20636 → amazon (do not change those rows without an operator
+# regression check). Other sources append after capture (ADR 004).
 version: 1
+personalities:
+  - id: tv-10178
+    mode: tv
+    profile: null
+  - id: cblsat-21033
+    mode: cbl-sat
+    profile: paramount
+    note: SIRC-20 1a:cmd:62 (+ shared :49 with DVD); map after labeled confirm
+  - id: dvd-20533
+    mode: dvd
+    profile: kanopy
+    note: SIRC-20 1a:cmd:49; map after labeled confirm
+  - id: vcr-20033
+    mode: vcr
+    profile: youtubetv
+    note: SIRC-12; HID mirrors amazon. quick_skip silent on 20033.
+  - id: sony-dvr-20636
+    mode: aux
+    profile: amazon
 mode_gate: aux
 personality: sony-dvr-20636
 profile: amazon
 ignore_speaker_always: true
 ignore: []
 map:
+  # --- CBL-SAT / cblsat-21033 / paramount (1a:*:62; shared 1a:*:49 with DVD) ---
+  # --- DVD / dvd-20533 / kanopy (1a:*:49) ---
+  # --- VCR / vcr-20033 / youtubetv (HID mirrors AUX/amazon) ---
+  # Labeled 2026-10-28 map-mode unmapped dump (one-press order).
+  # D-pad cmds differ from AUX 5f/60/5e; left/right still 62/61.
+  # instant_replay decodes as (0xb4, 0x5b) — same cmd as AUX 5b; map that tuple.
+  # quick_skip (forward curve): no IR on this personality.
+  sony-sirc12:2:42: MOUSE_UP
+  sony-sirc12:2:43: MOUSE_DOWN
+  sony-sirc12:2:62: MOUSE_LEFT
+  sony-sirc12:2:61: MOUSE_RIGHT
+  sony-sirc12:2:51: MOUSE_LEFT_CLICK
+  sony-sirc12:2:2a: ESCAPE
+  sony-sirc12:b4:5b: SHIFT_ALT_TAB
+  sony-sirc12:2:19: SPACE
+  sony-sirc12:2:1a: SPACE
+  sony-sirc12:2:1c: RIGHT
+  sony-sirc12:2:1b: LEFT
+  sony-sirc12:2:1d: F
+  # channel rocker (SIRC-12 addr 2) — arrows + SEEK_KEYS ramp.
+  sony-sirc12:2:10: UP
+  sony-sirc12:2:11: DOWN
+  # page▲/▼ (SIRC-15 addr b4) — distinct from channel; capture 2026-10-28.
+  sony-sirc15:b4:60: PAGE_UP
+  sony-sirc15:b4:62: PAGE_DOWN
+  # --- AUX / sony-dvr-20636 / amazon (measured) ---
   sony-sirc20:1a:5f:9a: MOUSE_UP
   sony-sirc20:1a:60:9a: MOUSE_DOWN
   sony-sirc20:1a:62:9a: MOUSE_LEFT
@@ -24,6 +67,7 @@ map:
   sony-sirc20:1a:72:9a: ALT_TAB
   sony-sirc20:1a:5b:9a: SHIFT_ALT_TAB
   sony-sirc20:1a:1d:9a: F
-  # page_up/channel_up and page_down/channel_down share these frames.
-  sony-sirc20:1a:10:9a: TAB
-  sony-sirc20:1a:11:9a: SHIFT_TAB
+  # page/channel share IR on AUX (capture 2026-10-28: NEW then [dup]).
+  # Channel owns HID — Up/Down with SEEK_KEYS ramp (same feel as VCR channel).
+  sony-sirc20:1a:10:9a: UP
+  sony-sirc20:1a:11:9a: DOWN

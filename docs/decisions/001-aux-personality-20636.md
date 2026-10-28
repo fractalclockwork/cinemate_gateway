@@ -9,7 +9,7 @@ AUX needs a five-digit library code. Several codes were tried; IR mapping requir
 
 ## Decision
 
-Stage **AUX** on Sony DVR **`20636`** (`sony-dvr-20636`). Keep **TV** on **`10178`** as a separate source. Host keymap uses AUX+20636 SIRC-20 frames with profile **kanopy**.
+Stage **AUX** on Sony DVR **`20636`** (`sony-dvr-20636`). Keep **TV** on **`10178`** as a separate source. Host keymap uses AUX+20636 SIRC-20 frames with profile **amazon**. Other players use distinct sources/codes ([ADR 004](004-multi-source-personalities.md)).
 
 ## Evidence
 

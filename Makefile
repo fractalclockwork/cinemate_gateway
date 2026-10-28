@@ -9,16 +9,16 @@ endif
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
 
 .PHONY: venv check check-docker sim stage loopback capture firmware \
-	firmware-keymap image smoke shell shell-usb pico-discover \
+	firmware-keymap firmware-watch image smoke shell shell-usb pico-discover \
 	picotool-info load-circuitpython help
 
 help:
 	@echo "ir-remote-bose — host checks and Pico IR→HID"
 	@echo "  Host:           make check | sim | firmware-keymap"
-	@echo "  Bench:          make stage | loopback | capture | firmware"
+	@echo "  Bench:          make stage | loopback | capture | firmware | firmware-watch"
 	@echo "  Docker:         make image | smoke | check-docker | shell | shell-usb"
 	@echo "  USB:            make pico-discover | picotool-info | load-circuitpython"
-	@echo "Operator flags: OPERATOR_VERIFY / OPERATOR_FLASH / OPERATOR_IR_PATH"
+	@echo "Operator flags: OPERATOR_VERIFY (HWIL); OPERATOR_FLASH (UF2 only); OPERATOR_IR_PATH"
 
 venv:
 	$(PYTHON) -m venv .venv
@@ -46,9 +46,11 @@ PROFILE ?=
 FRESH ?=
 MODE ?= unique
 READY_WAIT ?= 0
+# Optional: PERSONALITY=vcr-21972 (repeatable via space-separated list)
+PERSONALITY ?=
 capture:
 ifeq ($(MODE),unique)
-	$(PYTHON) -m hardware.capture --board $(BOARD) --unique $(if $(FRESH),--fresh,) $(if $(READY_WAIT),--ready-wait $(READY_WAIT),)
+	$(PYTHON) -m hardware.capture --board $(BOARD) --unique $(if $(FRESH),--fresh,) $(if $(READY_WAIT),--ready-wait $(READY_WAIT),) $(foreach p,$(PERSONALITY),--personality $(p))
 else ifeq ($(MODE),confirm)
 	$(PYTHON) -m hardware.capture --board $(BOARD) --confirm-map $(if $(READY_WAIT),--ready-wait $(READY_WAIT),)
 else
@@ -58,8 +60,13 @@ endif
 firmware-keymap:
 	$(PYTHON) -m software.export_firmware_keymap
 
+# CIRCUITPY app deploy: OPERATOR_VERIFY=1 only (no OPERATOR_FLASH).
 firmware: firmware-keymap
 	$(PYTHON) -m hardware.firmware --board $(BOARD)
+
+# Auto-redeploy when keymap/firmware sources change.
+firmware-watch:
+	$(PYTHON) -m hardware.firmware_watch --board $(BOARD)
 
 image:
 	$(MAKE) -C docker build-images

@@ -1,10 +1,11 @@
 # Paramount+ accessibility shortcuts.
 # Space is play/pause in the player and also jumps a section while browsing.
 # Seek is J/L. Left/Right are not the documented seek keys.
+# Phase C: CBL-SAT + Sony DVD 21033 (ADR 004). SIRC-20 1a:*:62 (+ some :49).
 id: paramount
 surface: player
 source: https://support.paramountplus.com/s/article/PI-What-accessibility-features-does-Paramount-offer
-remote: sony-dvr-20636
+remote: cblsat-21033
 controls:
   up: {hid: UP, ui: volume_up}
   down: {hid: DOWN, ui: volume_down}

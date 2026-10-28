@@ -1,8 +1,7 @@
 # Prime Video player + gateway pointer/focus bindings.
 # Published shortcuts: https://www.primevideo.com/help?nodeId=GE4VW9VWJD7FM6DR
 # Page▲/Channel▲ share IR 1a:10:9a; Page▼/Channel▼ share 1a:11:9a — one HID each
-# (TAB / SHIFT_TAB preferred for Prime focus / next-episode UI). See
-# docs/remote/amazon-chrome-shortcuts.md.
+# (Up/Down + hold ramp; same as VCR channel). See amazon-chrome-shortcuts.md.
 id: amazon
 surface: player
 source: https://www.primevideo.com/help?nodeId=GE4VW9VWJD7FM6DR
@@ -24,10 +23,9 @@ controls:
   # Backward curved arrow (Instant Replay). Same IR as previous: 1a:5b:9a.
   instant_replay: {hid: SHIFT_ALT_TAB, ui: switch_window_prev}
   record: {hid: F, ui: fullscreen}
-  # Shared IR with page_up — Tab for Chrome/Prime focus navigation.
-  channel_up: {hid: TAB, ui: focus_next}
-  channel_down: {hid: SHIFT_TAB, ui: focus_prev}
-  # Same IR as channel_*; left unbound so keymap_pairs stays unique.
+  # Shared IR with page_* (AUX capture: 1a:10/11 then [dup] on page vs channel).
+  channel_up: {hid: UP, ui: arrow_up}
+  channel_down: {hid: DOWN, ui: arrow_down}
   page_up: {hid: null, ui: alias_channel_up_ir}
   page_down: {hid: null, ui: alias_channel_down_ir}
   "0": {hid: null, ui: unbound}

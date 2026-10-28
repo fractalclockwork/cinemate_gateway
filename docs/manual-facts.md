@@ -61,12 +61,13 @@ Do not invent IR protocols, device codes, button encodings, or programming steps
   - `unclassified` → **Bose / CineMate speaker-always** (e.g. volume)
 - Guided confirm for AUX+20636 (operator-present): digits `1→0x00`…`9→0x08`, `0→0x09`; nav up `5f`, down `60`, right `61`, left `62`, enter `5e`, **back=Exit** `63`, menu `6f`, guide `73`, page/ch `10`/`11`, Instant Replay/previous `5b`, on_off `15`; transport pause `19`, play `1a`, frw `1b`, ffw `1c`, record `1d`, quick_skip `72`, list `2b`. Plan-wave **stop** unbound. On-Off confirmed in `software/profiles/remote.yaml`; wave evidence `reports/pico/20261027T043341Z/captures/{validated,buttons}.json` and `keymap.*.yaml`. Inventory: [`docs/remote/button-inventory.md`](remote/button-inventory.md).
 - VCR catch-all `20000` abandoned: external decoder only saw up/down. Archive `reports/pico/20261027T040450Z/captures/`.
+- **Hold-repeat is personality-dependent (operator, 2026-10-28):** under **VCR `20033`**, page and channel keep transmitting while held (continuous IR repeats). Under **AUX `20636`**, the shared page/channel rocker (`1a:10:9a` / `1a:11:9a`) only emits a **few** repeats then stops — source LED and Pico go quiet even though the finger is still down. Not a Pico/HID bug; SEEK_KEYS can only accelerate frames the remote still sends. Prefer VCR when long-hold page/channel feel matters.
 
 ## Must test (unknown until measured)
 
-- Whether the same physical button yields **different** IR payloads across sources.
+- Whether the same physical button yields **different** IR payloads across sources (page/channel: yes on VCR vs AUX — see Measured).
 - Full Bose speaker-always set (on/off/vol/mute) once unclassified frames are decoded; interaction with HID volume on the PC.
-- Auto-repeat / long-press timing and whether the Pico should suppress or map repeats.
+- Auto-repeat / long-press for **other** buttons (transport, d-pad) per personality; page/channel on AUX vs VCR is measured above.
 - Exact IR receiver/LED electrical levels once parts are chosen (see `hardware/docs/boards/pico.md`).
 
 ## Phase 1 policy for this project

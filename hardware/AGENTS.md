@@ -1,19 +1,20 @@
 # Hardware (HWIL)
 
-Physical stages and flash after the operator verifies the bench (`OPERATOR_VERIFY=1`). DUT presence is the `present` pass; later commands use that record.
+Physical stages after the operator verifies the bench (`OPERATOR_VERIFY=1`). DUT presence is the `present` pass; later commands use that record.
 
 ## Allowed
 
-- Run `make stage`, `make capture`, `make loopback`, and `make firmware` within board YAML ceilings.
+- Run `make stage`, `make capture`, `make loopback`, `make firmware`, and `make firmware-watch` within board YAML ceilings.
+- CIRCUITPY app deploy (`make firmware`) after `OPERATOR_VERIFY=1` + present — **no `OPERATOR_FLASH`**.
 - Capture IR evidence to `reports/pico/`.
 
 ## Forbidden
 
 - Setting `OPERATOR_*` flags.
-- Starting a stage, capture, loopback, firmware write, or UF2 load before `OPERATOR_VERIFY=1`.
+- Starting a stage, capture, loopback, firmware app deploy, or UF2 load before `OPERATOR_VERIFY=1`.
 - Raising `max_ir_tx_*` to pass a stage.
 - Radiating IR toward the CineMate Interface module in phase 1 (LED = optical loopback only).
-- Flashing without `OPERATOR_FLASH=1`.
+- UF2 / picotool CircuitPython load without `OPERATOR_FLASH=1` (bootloader write only).
 
 ## Protoboard (KiCad)
 

@@ -308,6 +308,158 @@ def find_pico_serial() -> Path:
     raise SystemExit(f"multiple Pico serial devices: {matches}")
 
 
+def wait_pico_serial(timeout: float = 12.0) -> Path:
+    """Poll until the Pico CDC port reappears after a soft reset."""
+    deadline = time.monotonic() + timeout
+    last_err = "no Pico serial"
+    while time.monotonic() < deadline:
+        try:
+            return find_pico_serial()
+        except SystemExit as exc:
+            last_err = str(exc)
+            time.sleep(0.35)
+    raise SystemExit(f"Pico serial did not return after reset ({last_err})")
+
+
+def _serial_shows_ready(buf: bytes, expected_digest: str | None = None) -> bool:
+    if b"firmware ready" not in buf:
+        return False
+    if expected_digest is None:
+        return True
+    return ("digest=" + expected_digest).encode() in buf
+
+
+def parse_digest_from_banner(text: str) -> str | None:
+    """Extract digest=… from a firmware-ready serial banner."""
+    marker = "digest="
+    for token in text.replace("\r", " ").split():
+        if token.startswith(marker):
+            value = token[len(marker) :].strip().rstrip(",;")
+            return value or None
+    # CircuitPython may print "digest=" and the value as separate args.
+    parts = text.replace("\r", "\n").split()
+    for index, part in enumerate(parts):
+        if part == "digest=" and index + 1 < len(parts):
+            return parts[index + 1].strip().rstrip(",;")
+        if part.startswith(marker) and len(part) > len(marker):
+            return part[len(marker) :].strip().rstrip(",;")
+    return None
+
+
+def wait_firmware_banner(
+    *,
+    expected_digest: str | None = None,
+    timeout: float = 15.0,
+) -> str:
+    """Read CDC until firmware-ready (and optional digest). Avoid Ctrl-C.
+
+    Ctrl-C after MCU reset can wedge USB HID until a physical unplug. Prefer a
+    passive read; if the boot banner was missed, poke a single Ctrl-D.
+    """
+    port = wait_pico_serial(timeout=min(12.0, timeout))
+    repl = RawRepl(port)
+    try:
+        repl._configure()
+        buf = b""
+        deadline = time.monotonic() + timeout
+        poked = False
+        while time.monotonic() < deadline:
+            buf += repl.read_for(0.3)
+            if _serial_shows_ready(buf, expected_digest):
+                return buf.decode("utf-8", "replace")
+            if (
+                not poked
+                and time.monotonic() >= deadline - timeout + 2.5
+                and b"firmware ready" not in buf
+            ):
+                repl.write(b"\x04")  # soft reload only — no Ctrl-C
+                poked = True
+    finally:
+        try:
+            repl.close()
+        except OSError:
+            pass
+    raise RuntimeError(
+        "firmware ready banner missing"
+        + (f" (want digest={expected_digest})" if expected_digest else "")
+        + f": {buf[:240]!r}"
+    )
+
+
+def soft_reload_pico(*, timeout: float = 8.0) -> str:
+    """Ctrl-D soft reload so code.py runs again (never leave the device in raw REPL).
+
+    Recovery helper only. Prefer soft_reset_pico + wait_firmware_banner after deploy
+    so HID is not interrupted with Ctrl-C.
+    """
+    port = find_pico_serial()
+    repl = RawRepl(port)
+    try:
+        repl._configure()
+        repl.read_for(0.15)
+        repl.write(b"\x03\x03")
+        time.sleep(0.12)
+        repl.write(b"\x02")
+        time.sleep(0.12)
+        repl.write(b"\x04")
+        buf = repl.read_for(timeout)
+    finally:
+        try:
+            repl.close()
+        except OSError:
+            pass
+    if not _serial_shows_ready(buf):
+        raise RuntimeError(
+            "soft reload did not print firmware ready banner: "
+            f"{buf[:200]!r}"
+        )
+    return buf.decode("utf-8", "replace")
+
+
+def soft_reset_pico(
+    *,
+    wait_s: float = 12.0,
+    expected_digest: str | None = None,
+) -> tuple[Path, str]:
+    """Raw-REPL `microcontroller.reset()` so boot.py and code.py both re-run.
+
+    After reset, passively wait for the ready banner (optional digest check).
+    Does not Ctrl-C afterward — that wedges USB HID until unplug.
+    """
+    port = find_pico_serial()
+    repl = RawRepl(port)
+    reset_ok = False
+    try:
+        try:
+            repl.enter()
+            try:
+                repl.exec(
+                    "import microcontroller\nmicrocontroller.reset()\n",
+                    timeout=2.0,
+                )
+            except (TimeoutError, OSError, RuntimeError):
+                pass
+            reset_ok = True
+        except (TimeoutError, OSError, RuntimeError):
+            try:
+                # Last resort: Ctrl-D only (restore_firmware also sends Ctrl-C).
+                repl.write(b"\x04")
+            except (TimeoutError, OSError, RuntimeError):
+                pass
+    finally:
+        try:
+            repl.close()
+        except OSError:
+            pass
+    time.sleep(1.0 if reset_ok else 0.4)
+    port = wait_pico_serial(timeout=wait_s)
+    banner = wait_firmware_banner(
+        expected_digest=expected_digest,
+        timeout=max(8.0, wait_s),
+    )
+    return port, banner
+
+
 def check_tx_echo(
     payload: dict,
     *,

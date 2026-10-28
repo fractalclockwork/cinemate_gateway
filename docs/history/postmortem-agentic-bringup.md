@@ -129,17 +129,24 @@ flowchart LR
 | Finding | Evidence | Impact | Likely cause | Confidence | Improvement |
 | --- | --- | --- | --- | --- | --- |
 | Stages not independent; HID treated as bring-up core | [`hardware/docs/bringup.md`](../../hardware/docs/bringup.md) steps 10–11; `image` → HID fixture | IR validation blocked/confused by Chrome path | End-goal listed HID without IR-only exit criteria | **Verified** + **Reported** | Split stages; IR map pass without HID |
+| **Capture-only gap:** unique listen ran while on-device **map** firmware still injected USB HID | 2026-10-28 AUX sanity: terminal received mapped escapes (`Shift+Tab` / arrows) during `make capture`; hits starved / operator saw “passthrough” instead of `frame_key` lines. VCR `21972` listens also `codes=0` amid the confusion (`reports/pico/20261028T025624Z`) | Device-code bring-up (library code → IR frames) mixed with player HID; hard to tell silent code vs RX vs keymap | Host Raw REPL listen did not guarantee HID-off; `MODE=map` remained the live path | **Verified** (2026-10-28) | **Capture-only mode:** `/CAPTURE_ONLY` + `boot.py` `usb_hid.disable()`, firmware decode-only prints, host arms/disarms around unique listen. Finish personality IR **before** map/player integration |
 | Blink prose hard to use | Manual ~pp. 14–15, 21 vs [`manual-facts.md`](manual-facts.md) Measured + Blink correction | Wasted programming attempts; contradictory “accept” | Ambiguous LEDs + no structured observation log | **Verified** / **Reported** | Blink worksheet + camera |
 | SIL-proxy `image` looks like HWIL done | `stage.json` `sil-optical-proxy`; pins null while later captures use GP14 | False sense of completion | Stage design conflates fixture with physical IR | **Verified** | Rename/split stage; never call proxy “optical pass” |
 | Placeholder firmware vs progress narrative | `code.py` pins/keymap still synthetic | Product path not live | Firmware deferred while host capture advanced | **Verified** | Explicit STATUS: “on-device = placeholder” |
 | High token / context use | **Reported** in brief; no in-repo token meters | Slow iteration | Broad searches, repeated PDF/manual reads, mixed stages | **Reported** / **Hypothesis** | `STATUS.md`, ADRs, role-scoped turns |
 | Doc/personality drift | chrome-troubleshooting 10178 vs keymap 20636 | Agents/operators program wrong source | Docs not updated after restage | **Verified** | Single personality owner + STATUS pointer |
+| **Hands-on USB unplug / dead IR after firmware copy** | 2026-10-28: eject+reset ok + digest ok, then serial showed **“Code stopped by auto-reload”** while host touched CIRCUITPY (`.Trash`/`.fseventsd`/remount); LED stopped blinking; also Ctrl-C-after-reset HID wedge; `OPERATOR_FLASH` on every app copy added prompt friction | Dead gateway mid-session; slow iterate | CP **autoreload** on MSC remount/junk; Ctrl-C after reset; FLASH flag over-gating app deploys | **Verified** | `boot.py` **`autoreload=False`**; deploy cleans junk; digest gate; **`make firmware` = VERIFY only**; **`make firmware-watch`** auto-redeploy |
+| **D-pad hold kills LED until unplug** | 2026-10-28: after several d-pad up presses LED stopped; needed unplug | Session dead mid-pointer | SIRC repeat → every-frame `Mouse.move` + serial `print` on composite USB wedges CP HID stack | **Verified** | Cap mouse reports (~20/s); **map mode: no CDC echo on presses** (ready banner only); try/except keep IR loop alive |
+| **AUX page/channel “dies” while held — blamed on Pico** | 2026-10-28 capture: AUX `1a:10`/`1a:11` a few `[dup]`s then quiet LED; VCR page/channel keep TX while held. Operator: Amazon UI benefits from Up/Down on that rocker | False firmware/PulseIn debug; weak hold-scroll on Prime under AUX+`20636` | **Library device profile** (Sony DVR `20636`) only emits a short IR repeat burst for page/channel; VCR `20033` continuous. Not HID/CDC | **Verified** (operator + unique listen) | Document in [`manual-facts.md`](../manual-facts.md); SEEK_KEYS only paces frames still sent; **open:** try other AUX/DVR (or VCR-on-AUX) codes for continuous page/channel repeat — see §5.1a |
 
 ### 3.3 Root causes vs symptoms
 
 | Root cause | Symptoms |
 | --- | --- |
 | Missing independent stage contracts (IR RX → map → on-device firmware → HID → player) | Bring-up mixes Chrome with IR; `image` SIL pass misread |
+| **No capture-only contract separating device-code IR from HID/player** | Library-code programming and unique listen fight live keymap inject; false “dead remote” reads |
+| **Deploy treated MSC copy + serial poke as sufficient** | Stale/wedged DUT until physical USB cycle; false “reload ok” without running digest |
+| **Assuming IR hold-repeat is uniform across Bose library codes** | “Capture/HID stuck after 4–5 page/channel presses” when AUX personality stopped TX; VCR still fine |
 | No living STATUS / decision / handoff log | Re-deriving blink rules and personality from chat |
 | Evidence files not reconciled after confirm-map | `session.json` vs `validated.json` disagreement |
 | Proxy stages without fidelity label in operator mental model | “Bring-up complete” while `code.py` unpinned |
@@ -193,21 +200,49 @@ flowchart LR
 
 Independent stages. **HID is not required** to pass IR reception or button mapping.
 
+### 5.0 Device-code bring-up vs player integration (addendum 2026-10-28)
+
+Treat these as **two lanes**. Do not debug them in the same listen.
+
+| Lane | Question | Mode | Pass when |
+| --- | --- | --- | --- |
+| **Device code** (personality) | Does this Bose source + five-digit library code emit usable IR? | **Capture-only** — `/CAPTURE_ONLY`, USB HID disabled, serial/`make capture` prints `frame_key` only | Source LED TX + unique/confirm stamps; `unique_codes.json` non-empty for that personality |
+| **Player integration** | Does a measured `frame_key` drive the right Chrome/player UI? | **Map** — HID on, union keymap, profile matrix | HID smoke + matrix rows |
+
+Multi-source growth (face order TV / CBL-SAT / DVD / VCR / AUX) stays in the device-code lane until each personality has disjoint frames ([ADR 004](../decisions/004-multi-source-personalities.md)). Only then append union keymap rows and regress prior players.
+
+**Fix shipped for the capture-only gap:** [`hardware/firmware/pico/boot.py`](../../hardware/firmware/pico/boot.py) disables HID when `/CAPTURE_ONLY` exists; [`code.py`](../../hardware/firmware/pico/code.py) decode-only path; [`hardware/capture.py`](../../hardware/capture.py) arms/disarms the flag around unique listen. Reflash before relying on it.
+
 | # | Stage | Inputs | Outputs / evidence | Pass/fail |
 | --- | --- | --- | --- | --- |
 | 1 | Bench wire | Parts + [`boards/pico.yaml`](../../hardware/boards/pico.yaml) pins | Pin fields filled; optional photo | Pins non-null and match wiring |
-| 2 | `present` | `HUMAN_VERIFY=1` | `stage.json` present | USB identity matches board YAML / Adafruit CP |
-| 3 | Firmware load | `HUMAN_FLASH=1` + present | UF2 + `code.py` on CIRCUITPY; STATUS note | Mount shows expected files |
-| 4 | IR RX smoke | Remote press | Capture session / decode lines | At least one frame; **no HID** |
-| 5 | Optical loopback | `HUMAN_IR_PATH=1` | `loopback.json` | `ok: true` under TX ceilings |
-| 6 | Remote personality | Setup + code | Code + blink worksheet + code-check | Digits match intended library code |
-| 7 | Unique + confirm-map | Listen / confirm | `unique_codes.json`, `validated.json` | Agreeing samples per button |
-| 8 | Keymap build | Map + profile | `software/keymap.yaml` | `make check` + profile consistency |
-| 9 | HID smoke | On-device map mode | Key-event viewer stamp / STATUS | One mapped key produces expected HID |
+| 2 | `present` | `OPERATOR_VERIFY=1` (was `HUMAN_*` in original write) | `stage.json` present | USB identity matches board YAML / Adafruit CP |
+| 3 | Firmware load | `OPERATOR_FLASH=1` + present | UF2 + `code.py`/`boot.py` on CIRCUITPY; STATUS note | Mount shows expected files; CAPTURE_ONLY support present |
+| 4 | IR RX smoke | Remote press | Capture session / decode lines | At least one frame; **capture-only (no HID)** |
+| 5 | Optical loopback | `OPERATOR_IR_PATH=1` | `loopback.json` | `ok: true` under TX ceilings |
+| 6 | Remote personality | Setup + code | Code + blink worksheet + code-check | Digits match intended library code; source LED TX |
+| 7 | Unique + confirm-map | Capture-only listen / confirm | `unique_codes.json`, `validated.json` | Agreeing samples per button; **no HID inject during listen** |
+| 8 | Keymap build | Map + profile | `software/keymap.yaml` union | `make check` + profile consistency; AUX rows regress-safe |
+| 9 | HID smoke | On-device **map** mode (CAPTURE_ONLY cleared) | Key-event viewer stamp / STATUS | One mapped key produces expected HID |
 | 10 | Per-player matrix | Profiles | [`docs/remote/player-validation-matrix.md`](../remote/player-validation-matrix.md) | Rows pass/fail with stamps |
 | 11 | Chrome streaming | Focused player tab | Matrix + troubleshooting notes | Last; not a gate for IR |
 
 **Later refactor (optional):** split Make `image` into loopback / IR-path vs HID fixture so SIL proxy cannot mark physical IR complete.
+
+### 5.1a Multi-source + page/channel hold-repeat (addendum 2026-10-28 evening)
+
+Face order locked: **TV / CBL-SAT / DVD / VCR / AUX**. Union keymap keeps AUX `1a:*:9a` rows; VCR `20033` appends SIRC-12 (+ SIRC-15 page, `b4:5b` replay).
+
+| Observation | AUX `20636` (amazon) | VCR `20033` (youtubetv) | Label |
+| --- | --- | --- | --- |
+| Page▲ vs Channel▲ IR | **Shared** `sony-sirc20:1a:10:9a` (page press = `[dup]` of channel) | **Distinct:** channel `2:10`/`2:11`; page `sony-sirc15:b4:60`/`b4:62` | **Verified** |
+| Page/channel HID (chosen) | Shared → **Up / Down** + SEEK_KEYS (Tab abandoned; useful on Prime chrome UI) | Channel → Up/Down; page → Page Up/Down + SEEK_KEYS | **Verified** map + **Reported** Amazon usefulness |
+| Hold while finger down | Source LED + frames stop after a **few** IR repeats | Continuous IR repeat while held | **Verified** (operator; unique listen) |
+| Soft-reload / map quiet | Digest-gated CIRCUITPY deploy; map mode silent after ready banner; mouse report cap | same firmware | **Verified** |
+
+**Open (Hypothesis → next measure):** Find another five-digit code programmable on **AUX** (DVR/VCR lists in the Device Codes book) that (1) still maps cleanly for Prime and (2) **keeps repeating** page/channel while held, like VCR `20033`. Procedure: program candidate → code-check → `OPERATOR_VERIFY=1 make capture PERSONALITY=sony-dvr-<code>` (or temporary slot) → hold page/channel and count TX blinks / `[dup]` cadence → only then retarget amazon remote personality. Do **not** assume software can invent repeats the remote never sends.
+
+Capture listen also caps burst edges (~84) so *true* continuous TX (VCR) does not fill PulseIn `maxlen=256` and spawn false `unclassified` NEWs — keep that; it does not fix AUX short-burst personality.
 
 ### 5.1 Per-player matrix fields
 
@@ -223,7 +258,7 @@ Profiles: `amazon`, `kanopy`, `paramount`, `youtubetv`. Start with **Kanopy** (a
 
 1. Read root [`AGENTS.md`](../../AGENTS.md) + stand in **one** role tree.
 2. Read [`STATUS.md`](../../STATUS.md) (Decided / Working hypothesis / Open / Handoff).
-3. 10-line plan; refuse to mix IR debugging with HID implementation.
+3. 10-line plan; refuse to mix device-code / capture-only debugging with HID or player implementation.
 4. Targeted path reads (prefer [`manual-facts.md`](manual-facts.md) over re-PDF).
 5. Small diff; `make check` for SIL; HWIL only after operator assent.
 6. Handoff: next command + evidence path under `reports/`.
@@ -286,8 +321,8 @@ Profiles: `amazon`, `kanopy`, `paramount`, `youtubetv`. Start with **Kanopy** (a
 ### First next steps
 
 1. Keep `STATUS.md` current after every session.
-2. Run one blink worksheet pass (code-check `20636` + one accept/reject observation) without rewriting history.
-3. Choose next sprint: **on-device firmware** (needed for HID/Chrome) vs **matrix template fill as planned/not-run**.
+2. Finish VCR→YouTube TV matrix rows from operator report; Prime/amazon smoke with AUX Up/Down rocker (short burst expected).
+3. **Library-code hunt:** candidate AUX codes with continuous page/channel IR repeat (§5.1a) — worksheet + capture, no firmware guesswork.
 4. When publishing: LICENSE + git + SIL CI; no force-push; leave `reports/` local.
 
 ---

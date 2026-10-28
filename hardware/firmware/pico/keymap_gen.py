@@ -2,6 +2,22 @@
 # Source: software/keymap.yaml
 # KEYMAP keys: (address, command) or (address, command, extended) for SIRC-20.
 KEYMAP = {
+    (0x02, 0x42): ('mouse', 'MOUSE_UP'),
+    (0x02, 0x43): ('mouse', 'MOUSE_DOWN'),
+    (0x02, 0x62): ('mouse', 'MOUSE_LEFT'),
+    (0x02, 0x61): ('mouse', 'MOUSE_RIGHT'),
+    (0x02, 0x51): ('mouse', 'MOUSE_LEFT_CLICK'),
+    (0x02, 0x2a): ('keyboard', 'ESCAPE'),
+    (0xb4, 0x5b): ('keyboard', 'SHIFT_ALT_TAB'),
+    (0x02, 0x19): ('keyboard', 'SPACE'),
+    (0x02, 0x1a): ('keyboard', 'SPACE'),
+    (0x02, 0x1c): ('keyboard', 'RIGHT'),
+    (0x02, 0x1b): ('keyboard', 'LEFT'),
+    (0x02, 0x1d): ('keyboard', 'F'),
+    (0x02, 0x10): ('keyboard', 'UP'),
+    (0x02, 0x11): ('keyboard', 'DOWN'),
+    (0xb4, 0x60): ('keyboard', 'PAGE_UP'),
+    (0xb4, 0x62): ('keyboard', 'PAGE_DOWN'),
     (0x1a, 0x5f, 0x9a): ('mouse', 'MOUSE_UP'),
     (0x1a, 0x60, 0x9a): ('mouse', 'MOUSE_DOWN'),
     (0x1a, 0x62, 0x9a): ('mouse', 'MOUSE_LEFT'),
@@ -15,6 +31,6 @@ KEYMAP = {
     (0x1a, 0x72, 0x9a): ('keyboard', 'ALT_TAB'),
     (0x1a, 0x5b, 0x9a): ('keyboard', 'SHIFT_ALT_TAB'),
     (0x1a, 0x1d, 0x9a): ('keyboard', 'F'),
-    (0x1a, 0x10, 0x9a): ('keyboard', 'TAB'),
-    (0x1a, 0x11, 0x9a): ('keyboard', 'SHIFT_TAB'),
+    (0x1a, 0x10, 0x9a): ('keyboard', 'UP'),
+    (0x1a, 0x11, 0x9a): ('keyboard', 'DOWN'),
 }

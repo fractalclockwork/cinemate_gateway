@@ -11,7 +11,8 @@
 | `make load-circuitpython` | toolchain → board | `OPERATOR_VERIFY=1` + `OPERATOR_FLASH=1` + `present` pass | picotool load UF2 (BOOTSEL). Uses the present record |
 | `make stage STAGE=workflow` | HWIL | `OPERATOR_VERIFY=1` + `present` pass | Stored USB identity; CIRCUITPY mount is a workflow fact |
 | `make capture` / `loopback` | HWIL | `OPERATOR_VERIFY=1` (+ `OPERATOR_IR_PATH` for loopback) | Physical IR map / optical stamps |
-| `make firmware` | HWIL | `OPERATOR_VERIFY=1` + `OPERATOR_FLASH=1` + `present` pass | copy CircuitPython app to CIRCUITPY. Uses the present record |
+| `make firmware` | HWIL | `OPERATOR_VERIFY=1` + `present` pass | copy CircuitPython app to CIRCUITPY (no `OPERATOR_FLASH`) |
+| `make firmware-watch` | HWIL | `OPERATOR_VERIFY=1` + `present` | auto-redeploy on keymap/firmware change |
 
 `present` is the only USB presence probe. Re-run it when the USB identity to record has changed (BOOTSEL versus CircuitPython).
 

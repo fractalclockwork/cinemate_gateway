@@ -1,3 +1,4 @@
+# Primary / default programmed source (AUX → Amazon).
 source: AUX
 brand: Sony
 list: DVR
@@ -9,13 +10,47 @@ code_check:
 - 6
 - 3
 - 6
+# Mode → personality → profile (face left → right: TV / CBL-SAT / DVD / VCR / AUX).
+# Distinct library codes so IR frames do not collide (ADR 004).
+# Avoid abandoned VCR 20000; never reuse 20636 on another source.
+personalities:
+- id: tv-10178
+  source: TV
+  list: TV
+  library_code: '10178'
+  profile: null
+  note: Separate source; nec-like in unique capture. Not a player profile yet.
+- id: cblsat-21033
+  source: CBL-SAT
+  list: DVD
+  library_code: '21033'
+  profile: paramount
+  note: SIRC-20 1a:cmd:49 (overlap DVD) plus unique 1a:cmd:62.
+- id: dvd-20533
+  source: DVD
+  list: DVD
+  library_code: '20533'
+  profile: kanopy
+  note: SIRC-20 1a:cmd:49 (ext 0x49), includes stop 1f.
+- id: vcr-20033
+  source: VCR
+  list: VCR
+  library_code: '20033'
+  profile: youtubetv
+  note: SIRC-12 addr 0x02 (ADR 003).
+- id: sony-dvr-20636
+  source: AUX
+  list: DVR
+  library_code: '20636'
+  profile: amazon
+  note: Measured SIRC-20; active Amazon Prime map.
 blink_semantics:
   program_accept_observed: 'Short flash, then two flashes after the fifth digit (operator:
     programming succeeded; AUX+10178 controlled TV On-Off)'
   program_reject_manual: 'Owner''s guide ~p. 15: five source buttons flash rapidly
     three times for invalid key / unavailable code'
-  source_led_tx: "Selected source LED (TV/VCR/AUX/\u2026) blinks when a press transmits\
-    \ IR; no blink means that button is silent for this personality"
+  source_led_tx: "Selected source LED (TV/CBL-SAT/DVD/VCR/AUX) blinks when a press\
+    \ transmits IR; no blink means that button is silent for this personality"
   note: Treat the observed short+double pattern as accept on this unit. Use source-LED
     blink to know which keys emit.
 working:
@@ -34,13 +69,19 @@ working:
 unique_capture:
   mode: listen-only decode; no prompts; map buttons after collecting unique frame
     keys
+  # Default make capture lists these as expected slots; first id tags every hit.
+  # For VCR-only Phase A, pass --personality vcr-20033 (Makefile PERSONALITY=).
   personalities:
-  - sony-dvr-20636
   - tv-10178
+  - cblsat-21033
+  - dvd-20533
+  - vcr-20033
+  - sony-dvr-20636
   evidence: reports/pico/20261027T043341Z/captures
   operator_protocol_split:
-    sony-sirc20: AUX Sony DVR 20636 device commands
     nec-like: TV 10178 commands
+    sony-sirc20: AUX/DVD/CBL-SAT device commands (ext 9a/49/62)
+    sony-sirc12: VCR 20033 device commands (addr 2)
     unclassified: Bose/CineMate speaker-always (e.g. volume)
 prior_attempts:
 - library_code: '10178'
@@ -58,6 +99,16 @@ prior_attempts:
   source: AUX
   list: DVR
   note: Same blink pattern; was misclassified as reject.
+- library_code: '21972'
+  source: VCR
+  list: DVR
+  personality: vcr-21972
+  note: Abandoned for VCR. TX live but NEC-like (no SIRC frame_key). Walked to 20033.
+- library_code: '20033'
+  source: VCR
+  list: VCR
+  personality: vcr-20033
+  note: Under test. tio capture-only — sony-sirc12:2:cmd catalog; disjoint from AUX.
 - library_code: '20034'
   source: AUX
   list: VCR

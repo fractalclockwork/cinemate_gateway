@@ -7,8 +7,10 @@ from pathlib import Path
 import pytest
 
 from hardware.capture import (
+    DEFAULT_UNIQUE_PASS,
     DEVICE_CODE,
     MAP_BUTTONS,
+    PERSONALITIES,
     PERSONALITY,
     append_measured_fact,
     build_button_table,
@@ -21,6 +23,38 @@ from hardware.capture import (
 )
 from software.decode import classify_pulses, nec_to_pulses
 from software.keymap import load_keymap
+
+
+def test_capture_personalities_include_vcr_slot_from_remote():
+    assert "sony-dvr-20636" in PERSONALITIES
+    assert "vcr-20033" in PERSONALITIES
+    assert PERSONALITIES["vcr-20033"]["source"] == "VCR"
+    assert PERSONALITIES["vcr-20033"]["code"] == "20033"
+    assert "vcr-20033" in DEFAULT_UNIQUE_PASS
+
+
+def test_boot_py_keeps_hid_for_map_build_and_disables_autoreload():
+    boot = (
+        Path(__file__).resolve().parents[1] / "firmware" / "pico" / "boot.py"
+    ).read_text()
+    # Default deploy is map (YouTube/Amazon HID). Capture-only still via
+    # CAPTURE_BUILD=True or host /CAPTURE_ONLY. Autoreload off so CIRCUITPY
+    # remounts do not kill the IR loop.
+    assert "CAPTURE_BUILD = False" in boot
+    assert "usb_hid.disable" in boot
+    assert "CAPTURE_ONLY" in boot
+    assert "autoreload = False" in boot
+
+
+def test_firmware_defaults_to_map_and_keeps_capture_path():
+    code = (
+        Path(__file__).resolve().parents[1] / "firmware" / "pico" / "code.py"
+    ).read_text()
+    assert 'MODE = "map"' in code
+    assert "frame_key" in code
+    assert "CAPTURE_SLOTS" in code
+    assert "no HID passthrough" in code
+    assert 'MODE == "capture"' in code
 
 
 def test_device_script_holds_tx_low_and_does_not_transmit():
@@ -53,6 +87,8 @@ def test_device_script_lights_onboard_led_from_new_edges():
     assert "0.2" in src
     assert "sleep(0.05)" not in src
     assert "sleep(0.5)" not in src
+    # Hold-repeat must stop before PulseIn maxlen=256 truncates the dump.
+    assert "seen >= 84" in src
 
 
 def _hit(button: str, sample: str, address: int, command: int) -> dict:
@@ -142,9 +178,11 @@ def test_button_table_maps_only_a_stable_unique_nec_wave(tmp_path: Path):
     assert amazon[enter_key] == "MOUSE_LEFT_CLICK"
     assert amazon[ffw_key] == "RIGHT"
     assert paramount[ffw_key] == "L"
-    assert ffw_key not in youtube
+    # YouTube TV mirrors Amazon button purpose (HID) until player-specific tuning.
+    assert youtube[up_key] == "MOUSE_UP"
+    assert youtube[enter_key] == "MOUSE_LEFT_CLICK"
+    assert youtube[ffw_key] == "RIGHT"
     assert "FAST_FORWARD" not in youtube.values()
-    assert youtube["nec-like:40:05"] == "ENTER"
 
 
 def test_on_off_confirmation_accepts_a_shared_unclassified_signature():

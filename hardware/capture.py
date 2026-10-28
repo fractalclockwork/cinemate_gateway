@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
@@ -21,9 +22,16 @@ import yaml
 
 from hardware.records import REPO_ROOT, load_board, reports_root, run_report_dir, stage_passed
 from hardware.loopback import RawRepl, find_pico_serial
+from hardware import probe
 from operator import assent
 from software.decode import MAPPED_PROTOCOLS, classify_pulses, split_frames
-from software.profile import PROFILE_IDS, control_hid, load_profile
+from software.profile import (
+    PROFILE_IDS,
+    control_hid,
+    load_profile,
+    load_remote,
+    personalities_from_remote,
+)
 
 CONFIRM_MAP_DIR = (
     REPO_ROOT / "reports" / "pico" / "20261027T043341Z" / "captures"
@@ -38,25 +46,47 @@ LED_QUIET_S = 0.2
 # One Sony SIRC-20 frame is 42 mark/space values. Stop after a short burst so
 # auto-repeat does not fill PulseIn (maxlen 256) and truncate the capture.
 MIN_BURST_EDGES = 42
+# Hold-repeat never goes quiet — cap well under maxlen or dumps go unclassified
+# and PulseIn drops edges (LED looks dead) until the window ends.
+MAX_BURST_EDGES = 84
 CARRIER_NOTE = "CHQ1838 demodulated envelope, not the 38 kHz carrier"
-# Operator: AUX holds Sony DVR 20636. Also collect TV source 10178.
-PERSONALITIES: dict[str, dict[str, str]] = {
-    "sony-dvr-20636": {
-        "id": "sony-dvr-20636",
-        "source": "AUX",
-        "brand": "Sony",
-        "list": "DVR",
-        "code": "20636",
-    },
-    "tv-10178": {
-        "id": "tv-10178",
-        "source": "TV",
-        "brand": "Universal",
-        "list": "TV",
-        "code": "10178",
-    },
-}
-DEFAULT_UNIQUE_PASS = ("sony-dvr-20636", "tv-10178")
+CAPTURE_ONLY_PATH = "/CAPTURE_ONLY"
+_SERIAL_REAPPEAR_S = 20.0
+
+
+def _personalities_for_capture() -> dict[str, dict[str, str]]:
+    """Capture slots from remote.yaml (id, source, list, code)."""
+    remote = load_remote()
+    out: dict[str, dict[str, str]] = {}
+    for pid, row in personalities_from_remote(remote).items():
+        out[pid] = {
+            "id": pid,
+            "source": str(row.get("source") or ""),
+            "brand": str(row.get("brand") or remote.get("brand") or "Sony"),
+            "list": str(row.get("list") or ""),
+            "code": str(row.get("library_code") or ""),
+        }
+    return out
+
+
+def _default_unique_pass(personalities: dict[str, dict[str, str]]) -> tuple[str, ...]:
+    remote = load_remote()
+    listed = (remote.get("unique_capture") or {}).get("personalities") or []
+    names = [str(name) for name in listed if str(name) in personalities]
+    if names:
+        return tuple(names)
+    # Fallback: primary AUX then TV if present.
+    primary = str(remote.get("personality") or "")
+    ordered = [primary] if primary in personalities else []
+    for pid in personalities:
+        if pid not in ordered:
+            ordered.append(pid)
+    return tuple(ordered)
+
+
+# Loaded from software/profiles/remote.yaml (ADR 004 slots).
+PERSONALITIES: dict[str, dict[str, str]] = _personalities_for_capture()
+DEFAULT_UNIQUE_PASS: tuple[str, ...] = _default_unique_pass(PERSONALITIES)
 # Staged defaults for --validate path (AUX Sony DVR).
 PERSONALITY = "sony-dvr-20636"
 DEVICE_BRAND = "Sony"
@@ -156,6 +186,9 @@ try:
             seen = count
             led.value = True
             quiet_since = None
+            # Hold-repeat: take ~2 frames and stop before PulseIn saturates.
+            if seen >= {MAX_BURST_EDGES}:
+                break
         elif seen > 0:
             now = time.monotonic()
             if quiet_since is None:
@@ -284,6 +317,155 @@ def _listen_once(
     if int(payload.get("rx_pin", -1)) != rx_pin or int(payload.get("tx_pin", -1)) != tx_pin:
         raise RuntimeError("device pins do not match the board YAML")
     return [int(value) for value in payload.get("pulses") or []]
+
+
+def _wait_pico_serial(timeout: float = _SERIAL_REAPPEAR_S) -> Path:
+    deadline = time.monotonic() + timeout
+    last_err = "no Pico serial"
+    while time.monotonic() < deadline:
+        try:
+            return find_pico_serial()
+        except SystemExit as exc:
+            last_err = str(exc)
+            time.sleep(0.4)
+    raise SystemExit(f"Pico serial did not return after reset ({last_err})")
+
+
+def _raw_reset_may_drop(repl: RawRepl, source: str) -> None:
+    """Run a reset snippet; connection drop / timeout is expected."""
+    try:
+        repl.exec(source, timeout=2.0)
+    except (TimeoutError, OSError, RuntimeError):
+        pass
+
+
+def _write_capture_only_flag() -> None:
+    """Prefer CIRCUITPY mount write + sync so the flag survives reset."""
+    mount = probe.circuitpy_mount()
+    if mount is not None:
+        flag = mount / "CAPTURE_ONLY"
+        flag.write_text("")
+        try:
+            fd = os.open(flag, os.O_RDONLY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            os.sync()
+        except OSError:
+            pass
+        print(f"  wrote {flag}", flush=True)
+
+
+def _clear_capture_only_flag() -> None:
+    mount = probe.circuitpy_mount()
+    if mount is None:
+        return
+    flag = mount / "CAPTURE_ONLY"
+    try:
+        flag.unlink()
+        os.sync()
+    except OSError:
+        pass
+
+
+def arm_capture_only() -> RawRepl:
+    """Write /CAPTURE_ONLY, soft-reset so boot.py disables USB HID, re-enter REPL.
+
+    Requires deployed boot.py that honors CAPTURE_ONLY. Without that deploy,
+    map-mode HID can still reach the focused host window during listen.
+    Do not press the remote until READY is printed.
+    """
+    print(
+        "Arming capture-only — do not press the remote yet "
+        "(map HID may still be live until reset finishes).",
+        flush=True,
+    )
+    _write_capture_only_flag()
+    port = find_pico_serial()
+    repl = RawRepl(port)
+    repl.enter()
+    # Also create the flag on-device in case the mount write raced.
+    _raw_reset_may_drop(
+        repl,
+        "open('/CAPTURE_ONLY','w').close()\n"
+        "import microcontroller\n"
+        "microcontroller.reset()\n",
+    )
+    try:
+        repl.close()
+    except OSError:
+        pass
+    time.sleep(1.5)
+    port = _wait_pico_serial()
+    repl = RawRepl(port)
+    repl.enter()
+    # CircuitPython os has no os.path — match boot.py open()/OSError probe.
+    stdout, stderr = repl.exec(
+        "try:\n"
+        " open('/CAPTURE_ONLY','r').close()\n"
+        " print('CAPTURE_FLAG', True)\n"
+        "except OSError:\n"
+        " print('CAPTURE_FLAG', False)\n",
+        timeout=3.0,
+    )
+    if stderr.strip():
+        raise RuntimeError(stderr.strip())
+    if "CAPTURE_FLAG True" not in stdout:
+        raise SystemExit(
+            "CAPTURE_ONLY missing after reset — boot.py cannot disable HID. "
+            "Reflash firmware (boot.py), eject/remount CIRCUITPY if needed, retry."
+        )
+    print(
+        "READY — USB HID off (/CAPTURE_ONLY). Press the remote now. "
+        "Expect [NEW] frame_key lines; keyboard/mouse inject means arming failed.",
+        flush=True,
+    )
+    return repl
+
+
+def disarm_capture_only(repl: RawRepl | None) -> None:
+    """Remove /CAPTURE_ONLY and soft-reset so map-mode HID returns."""
+    _clear_capture_only_flag()
+    if repl is None:
+        # Still try a serial reset if the flag was mount-cleared only.
+        try:
+            port = find_pico_serial()
+        except SystemExit:
+            print("CAPTURE_ONLY cleared on mount (no serial for reset).", flush=True)
+            return
+        repl = RawRepl(port)
+        try:
+            repl.enter()
+        except (TimeoutError, OSError):
+            try:
+                repl.close()
+            except OSError:
+                pass
+            print("CAPTURE_ONLY cleared; reset Pico once for map HID.", flush=True)
+            return
+    try:
+        _raw_reset_may_drop(
+            repl,
+            "import os\n"
+            "try:\n"
+            " os.remove('/CAPTURE_ONLY')\n"
+            "except OSError:\n"
+            " pass\n"
+            "import microcontroller\n"
+            "microcontroller.reset()\n",
+        )
+    finally:
+        try:
+            repl.close()
+        except OSError:
+            pass
+    time.sleep(1.0)
+    try:
+        _wait_pico_serial(timeout=12.0)
+    except SystemExit:
+        pass
+    print("CAPTURE_ONLY cleared; map-mode HID available after reboot.", flush=True)
 
 
 def _wave_protocol(samples: list[dict]) -> dict:
@@ -887,12 +1069,11 @@ def run_unique_session(
     catalog.setdefault("hits", [])
 
     script = build_device_script(rx_pin=rx_pin, tx_pin=tx_pin)
-    port = find_pico_serial()
     print(
-        "Listen-only unique IR decode. No button prompts. "
+        "Listen-only unique IR decode (HID off). No button prompts. "
         "Press any keys freely (source LED blink = TX). "
-        "Attempted decode is recorded; map buttons later. "
-        "Ctrl+C to stop.",
+        "Decoded frame keys print below; map buttons later. "
+        "Ctrl+C to stop and restore map-mode HID.",
         flush=True,
     )
     for name in personalities:
@@ -907,12 +1088,10 @@ def run_unique_session(
         print(f"Starting in {ready_wait:.0f} seconds.", flush=True)
         time.sleep(ready_wait)
 
-    repl = RawRepl(port)
-    entered = False
+    repl: RawRepl | None = None
     hit_index = len(catalog["hits"])
     try:
-        repl.enter()
-        entered = True
+        repl = arm_capture_only()
         while True:
             pulses = _listen_once(repl, script, rx_pin, tx_pin)
             if not pulses:
@@ -958,11 +1137,13 @@ def run_unique_session(
             _save_unique_catalog(captures, catalog)
             session["hit_count"] = hit_index
             session["unique_count"] = len(catalog["codes"])
+            session["hid"] = "disabled"
             _write_json(captures / "session.json", session)
             mark = "NEW" if is_new else "dup"
             key = classification.get("frame_key") or identity
+            proto = classification.get("protocol") or "?"
             print(
-                f"  [{mark}] {key} edges={record.get('edges')} "
+                f"  [{mark}] {key} proto={proto} edges={record.get('edges')} "
                 f"unique={len(catalog['codes'])} hits={hit_index}",
                 flush=True,
             )
@@ -980,12 +1161,7 @@ def run_unique_session(
         )
         return 0
     finally:
-        if entered:
-            try:
-                repl.restore_firmware()
-            except (OSError, TimeoutError):
-                pass
-        repl.close()
+        disarm_capture_only(repl)
     return 0
 
 
@@ -1412,7 +1588,11 @@ def main(argv: list[str] | None = None) -> None:
         "--personality",
         action="append",
         choices=sorted(PERSONALITIES),
-        help="tag hits with this personality (default AUX 20636; TV 10178 also listed)",
+        help=(
+            "tag hits with this personality (first listed tags all hits). "
+            "Default: remote.yaml unique_capture.personalities. "
+            "Phase A VCR: --personality vcr-20033"
+        ),
     )
     args = parser.parse_args(argv)
     modes = sum(bool(flag) for flag in (args.unique, args.confirm_map, args.validate))

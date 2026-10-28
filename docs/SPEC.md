@@ -31,11 +31,19 @@ Build a personal **remote-control gateway**:
 | User-input only | Map to ordinary HID keyboard/media events the operator could type. Prefer keys over browser automation. |
 | Confirmation | Physical bench work requires the operator to set `OPERATOR_VERIFY` (and `OPERATOR_FLASH` / `OPERATOR_IR_PATH` where applicable). Agents must not invent that confirmation. |
 
-### Staged remote personality (Decided)
+### Staged remote personalities (Decided / in progress)
 
-- **AUX:** Sony DVR library code **`20636`** (`sony-dvr-20636`), measured as Sony SIRC-20.
-- **TV (separate source):** **`10178`**.
-- Details: [`decisions/001-aux-personality-20636.md`](decisions/001-aux-personality-20636.md), [`software/profiles/remote.yaml`](../software/profiles/remote.yaml).
+Source buttons left → right on the face: **TV / CBL-SAT / DVD / VCR / AUX**.
+
+| Bose source | Profile | Library code | Personality | Status |
+| --- | --- | --- | --- | --- |
+| TV | none | `10178` | `tv-10178` | Separate source; nec-like; not a player |
+| CBL-SAT | paramount | `21033` | `cblsat-21033` | SIRC-20 `1a:cmd:62` (+ shared `:49` with DVD) |
+| DVD | kanopy | `20533` | `dvd-20533` | SIRC-20 `1a:cmd:49` |
+| VCR | youtubetv | `20033` | `vcr-20033` | SIRC-12; HID mirrors amazon; quick_skip silent; replay=`b4:5b` |
+| AUX | amazon | `20636` | `sony-dvr-20636` | Measured SIRC-20; working |
+
+Prefer Sony list codes on every player source (including CBL-SAT) so IR stays on the validated SIRC path. Never reuse `20636` or `20000`. Slotting, pool, walks, conflict rules: [`decisions/004-multi-source-personalities.md`](decisions/004-multi-source-personalities.md). VCR detail: [`decisions/003-vcr-youtubetv-personality.md`](decisions/003-vcr-youtubetv-personality.md). AUX: [`decisions/001-aux-personality-20636.md`](decisions/001-aux-personality-20636.md). Data: [`software/profiles/remote.yaml`](../software/profiles/remote.yaml).
 
 ## 4. Architecture (Decided)
 
@@ -46,7 +54,7 @@ Build a personal **remote-control gateway**:
 | IR RX / TX pins | **GP14** RX, **GP15** TX (TX held low in Phase 1) — [`hardware/boards/pico.yaml`](../hardware/boards/pico.yaml) |
 | Decode | Thin on-device Sony SIRC; host SIL helpers in [`software/decode.py`](../software/decode.py) |
 | Keymap | Host [`software/keymap.yaml`](../software/keymap.yaml) → `make firmware-keymap` → [`hardware/firmware/pico/keymap_gen.py`](../hardware/firmware/pico/keymap_gen.py) |
-| App profiles | Per-player HID encodings under [`software/profiles/`](../software/profiles/) (**amazon** active) |
+| App profiles | Per-player HID under [`software/profiles/`](../software/profiles/); host keymap is a **union** of IR frames (face order TV / CBL-SAT / DVD / VCR / AUX; append after each capture) |
 | Trees | `operator/` confirmation, `hardware/` bench, `software/` host checks, `environment/` toolchain — see [`AGENTS.md`](../AGENTS.md) |
 
 Hardware bring-up and pin/electrical caveats: [`hardware/docs/boards/pico.md`](../hardware/docs/boards/pico.md), [`hardware/docs/bringup.md`](../hardware/docs/bringup.md). Protoboard: [`kicad/ir-gateway/`](kicad/ir-gateway/).

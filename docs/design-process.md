@@ -38,6 +38,8 @@ The first process was borrowed from a general lab method: roles, a lesson that u
 
 That shape cost time, because agents spent effort protecting lesson unlocks and stage names that had nothing to do with the product. `HUMAN` was also the wrong word. The operator builds the board, flashes the Pico, watches the movie, and lives with the keymap, so the flags are now `OPERATOR_*`. The lesson tree and the harness role are gone; button-code learning remains, as capture.
 
+A later friction was subtler: unique IR listen still ran under map-mode HID, so library-code bring-up fought the player keymap in the same terminal. Capture-only (`/CAPTURE_ONLY`, HID off, `frame_key` print) isolates device-code work from player integration; the archived postmortem §5.0 records that gap and the split.
+
 ## How the instructions are loaded
 
 Three kinds of text reach the agent at three different times, and confusing them is how a short safety rule grows into a novel or a board procedure goes unread because it was never in front of the agent.

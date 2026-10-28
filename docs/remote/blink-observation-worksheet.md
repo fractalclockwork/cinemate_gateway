@@ -23,7 +23,7 @@ Use this instead of reinterpreting prose. Do **not** edit old contradictory note
 
 | date_utc | mode | source | code_or_digit | intended | leds (selected / all_five) | start_flash? | flash_count | long_blink? | interpretation | confidence | video_or_note | observer |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| | program / code_check / tx_activity | TV/AUX/… | e.g. 20636 or digit 0 | accept / reject / digit N | | y/n/unknown | | y/n | | | | |
+| | program / code_check / tx_activity | TV/CBL-SAT/DVD/VCR/AUX | e.g. 20636 or digit 0 | accept / reject / digit N | | y/n/unknown | | y/n | | | | |
 
 ## Logged observations
 
@@ -32,6 +32,8 @@ Use this instead of reinterpreting prose. Do **not** edit old contradictory note
 | date_utc | mode | source | code_or_digit | intended | leds | start_flash? | flash_count | long_blink? | interpretation | confidence | video_or_note | observer |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | _(none yet — worksheet created 2026-10-27)_ | | | | | | | | | | | | |
+| 2026-10-28 | program | VCR | `21972` | reject-protocol | | | | | NEC-like TX; abandoned | | ADR 003 | |
+| 2026-10-28 | program | VCR | `20033` | accept | | | | | SIRC-12 addr 0x02 under test | | operator | |
 
 ## Historical claims (not reconciled)
 

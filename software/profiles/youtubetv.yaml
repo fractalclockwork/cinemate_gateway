@@ -1,21 +1,31 @@
-# YouTube TV computer help documents search and Enter, not playback keys.
-# The youtube.com shortcut table is not applied here.
+# YouTube TV — mirrors Amazon button purpose; HID diverges for page/channel.
+# IR: VCR + 20033. Channel = SIRC-12 arrows; page = SIRC-15 Page Up/Down.
+# quick_skip silent.
+# Computer help: https://support.google.com/youtubetv/answer/7271628
 id: youtubetv
-surface: browse
+surface: player
 source: https://support.google.com/youtubetv/answer/7271628
-remote: sony-dvr-20636
+remote: vcr-20033
 controls:
-  up: {hid: null, ui: unbound}
-  down: {hid: null, ui: unbound}
-  left: {hid: null, ui: unbound}
-  right: {hid: null, ui: unbound}
-  enter: {hid: ENTER, ui: select}
-  back: {hid: null, ui: unbound}
-  play: {hid: null, ui: unbound}
-  pause: {hid: null, ui: unbound}
+  up: {hid: MOUSE_UP, ui: pointer_up}
+  down: {hid: MOUSE_DOWN, ui: pointer_down}
+  left: {hid: MOUSE_LEFT, ui: pointer_left}
+  right: {hid: MOUSE_RIGHT, ui: pointer_right}
+  enter: {hid: MOUSE_LEFT_CLICK, ui: click}
+  back: {hid: ESCAPE, ui: exit_playback}
+  play: {hid: SPACE, ui: play_pause}
+  pause: {hid: SPACE, ui: play_pause}
   stop: {hid: null, ui: unbound}
-  ffw: {hid: null, ui: unbound}
-  frw: {hid: null, ui: unbound}
+  ffw: {hid: RIGHT, ui: seek_forward}
+  frw: {hid: LEFT, ui: seek_back}
+  quick_skip: {hid: ALT_TAB, ui: switch_window}
+  instant_replay: {hid: SHIFT_ALT_TAB, ui: switch_window_prev}
+  record: {hid: F, ui: fullscreen}
+  channel_up: {hid: UP, ui: arrow_up}
+  channel_down: {hid: DOWN, ui: arrow_down}
+  # Measured distinct from channel: sony-sirc15:b4:60 / b4:62.
+  page_up: {hid: PAGE_UP, ui: page_up}
+  page_down: {hid: PAGE_DOWN, ui: page_down}
   "0": {hid: null, ui: unbound}
   "1": {hid: null, ui: unbound}
   "2": {hid: null, ui: unbound}
